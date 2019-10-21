@@ -1,0 +1,58 @@
+删除了以下文件:
+- include/android-ifaddrs.h // android 头文件
+- include/stdint-msvc2008.h // windows 头文件
+- include/uv-aix.h //  aix 头文件
+- include/uv-bsd.h //  bsd 头文件
+- include/uv-darwin.h // mac 头文件
+- include/uv-nuttx.h // nuttx 头文件
+- include/uv-es390.h // es390 头文件
+- include/uv-sunos.h // sunos 头文件
+- include/uv-win.h // windows 头文件
+- src/tuv__config.h.in
+- src/unix/aix.c aix 实现
+- src/unix/android-ifaddrs.c // android 实现
+- src/unix/darwin-proctitle.c // mac实现
+- src/unix/darwin.c // mac 实现
+- src/unix/dl.c // 动态库加载，js 无法require native 库
+- src/unix/freebsd.c // freebsd 实现
+- src/unix/fsevents.c // mac 实现
+- src/unix/kqueue.c // mac 实现
+- src/unix/linux-*.c // linux 实现
+- src/unix/netbsd.c // netbsd 实现
+- src/unix/nuttx.c // nuttx 实现
+- src/unix/openbsd.c // open bsd 实现
+- src/unix/pthread-barrier.c // pthread barrier 支持，yodalite 中自带
+- src/unix/signal.c // 信号，无法使用及监听信号相关功能
+- src/unix/sunos.c // sunos 实现
+- src/unix/sysinfo-memory.c // 获取系统内存，无法获取内存使用情况
+- src/unix/tizenrt.c // tizenrt 实现
+- src/unix/tty.c // tty，无法使用 tty
+
+修改了以下文件:
+- include/uv-unix.h
+  - 增加了 freertos 头文件引入
+- include/uv.h 
+  - 增加了调用未实现的方式时终止运行的宏定义
+- src/threadpool.c
+  - 兼容 freertos
+- src/unix/core.c
+  - 兼容 freertos
+  - 移除了 getpriority/setpriority 方法，无法设置进程优先级
+- src/unix/fs.c
+  - 兼容 freertos
+  - 移除了 uv__fs_lstat 方法，无法获取软连接文件信息
+  - 移除了头文件 poll.h
+- src/unix/internal.h
+  - 兼容 freertos
+- src/unix/loop.c
+  - 在 uv_loop_init 移除了 uv__signal_global_once_init 和 uv_signal_init 调用
+- src/unix/process.c
+  - 移除了头文件 pool.h
+  - 移除了 uv__make_socketpair、uv__make_pipe、uv__process_child_init、uv_spawn、uv_kill，无法使用 child_process
+- src/unix/stream.c
+  - 兼容 freertos
+- src/unix/thread.c
+  - 兼容 freertos
+  - 移除了 uv_sem_destroy
+- src/unix/udp.c
+  - 兼容 freertos
