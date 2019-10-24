@@ -3,7 +3,7 @@
 
 #include <unistd.h>
 #include <string.h>
-#include "uv.h"
+#include <assert.h>
 #include "js-binding.h"
 #include "js-error.h"
 #include "js-logger.h"

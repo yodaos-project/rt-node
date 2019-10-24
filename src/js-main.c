@@ -1,19 +1,11 @@
 #include <stdio.h>
 #include <string.h>
 #include "js-common.h"
-#include "uv-common.h"
 #include "js-modules.h"
 #include "js-error.h"
 
-static void uv_close_handle(uv_handle_t *handle, void *arg) {
-  if (!uv_is_closing(handle)) {
-    uv_close(handle, NULL);
-  }
-}
-
-static void* run_js(void *data) {
+int js_main() {
   LOG_INFO("#####  jsruntime start 🐒 #####");
-  uv_replace_allocator(js_malloc, js_realloc, js_calloc, js_free);
   srand((unsigned)jerry_port_get_current_time());
 
   jerry_context_t* context = jerry_create_context(JS_VM_HEAP_SIZE,
@@ -37,14 +29,6 @@ static void* run_js(void *data) {
 
   js_call_function_void(jfunc, jglobal, NULL, 0, snapshot->code);
 
-  uv_loop_t* loop = uv_default_loop();
-  uv_run(loop, UV_RUN_DEFAULT);
-
-  uv_walk(loop, uv_close_handle, NULL);
-  uv_run(loop, UV_RUN_DEFAULT);
-
-  JS_ASSERT(uv_loop_close(loop) == 0);
-
   jerry_cleanup();
   js_free(context);
   uint64_t mem_left = js_get_memory_total();
@@ -53,12 +37,5 @@ static void* run_js(void *data) {
     LOG_WARN("memory leak, left: %ld, count: %ld", mem_left, alloc_count);
   }
   LOG_INFO("#####  jsruntime end 🙈 #####");
-  return NULL;
-}
-
-int jsruntime_init() {
-  pthread_t th;
-  pthread_create(&th, NULL, run_js, NULL);
-  pthread_detach(th);
   return 0;
 }

@@ -1,31 +1,31 @@
 #include "js-module-timer.h"
-#include "js-uv-handle.h"
 
-static const jerry_object_native_info_t this_module_native_info = { NULL };
+// static const jerry_object_native_info_t this_module_native_info = { NULL };
 
-static void timeout_handler(uv_timer_t* handle) {
-  JS_ASSERT(handle != NULL);
+// static void timeout_handler(uv_timer_t* handle) {
+//   JS_ASSERT(handle != NULL);
 
-  jerry_value_t jobject = JS_UV_HANDLE_DATA(handle)->jobject;
-  jerry_value_t jcallback = js_object_get_property(jobject, "handleTimeout");
-  js_call_function_void(jcallback, jobject, NULL, 0, NULL);
-  jerry_release_value(jcallback);
-}
+//   jerry_value_t jobject = JS_UV_HANDLE_DATA(handle)->jobject;
+//   jerry_value_t jcallback = js_object_get_property(jobject, "handleTimeout");
+//   js_call_function_void(jcallback, jobject, NULL, 0, NULL);
+//   jerry_release_value(jcallback);
+// }
 
 JS_FUNCTION(timer_start){
-  JS_DECLARE_PTR(jthis, uv_timer_t, timer_handle);
+  // JS_DECLARE_PTR(jthis, uv_timer_t, timer_handle);
 
-  uint64_t timeout = (uint64_t)js_object_to_number(jargv[0]);
-  uint64_t repeat = (uint64_t)js_object_to_number(jargv[1]);
-  int res = uv_timer_start(timer_handle, timeout_handler, timeout, repeat);
-  return jerry_create_number(res);
+  // uint64_t timeout = (uint64_t)js_object_to_number(jargv[0]);
+  // uint64_t repeat = (uint64_t)js_object_to_number(jargv[1]);
+  // int res = uv_timer_start(timer_handle, timeout_handler, timeout, repeat);
+  // return jerry_create_number(res);
+  return jerry_create_number(-1);
 }
 
 JS_FUNCTION(timer_stop) {
-  JS_DECLARE_PTR(jthis, uv_handle_t, timer_handle);
-  if (!uv_is_closing(timer_handle)) {
-    js_uv_handle_close(timer_handle, NULL);
-  }
+  // JS_DECLARE_PTR(jthis, uv_handle_t, timer_handle);
+  // if (!uv_is_closing(timer_handle)) {
+  //   js_uv_handle_close(timer_handle, NULL);
+  // }
 
   return jerry_create_number(0);
 }
@@ -33,12 +33,12 @@ JS_FUNCTION(timer_stop) {
 JS_FUNCTION(timer_constructor) {
   JS_ASSERT(jerry_value_is_object(jthis));
 
-  uv_handle_t* handle = js_uv_handle_create(sizeof(uv_timer_t),
-    jthis,
-    &this_module_native_info,
-    0);
+  // uv_handle_t* handle = js_uv_handle_create(sizeof(uv_timer_t),
+  //   jthis,
+  //   &this_module_native_info,
+  //   0);
 
-  uv_timer_init(uv_default_loop(), (uv_timer_t  *)handle);
+  // uv_timer_init(uv_default_loop(), (uv_timer_t  *)handle);
 
   return jerry_create_undefined();
 }
