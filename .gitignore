@@ -1,3 +1,6 @@
 .vscode/
 build/
 sdkconfig
+.DS_Store
+js-snapshots.h
+js-snapshots.c

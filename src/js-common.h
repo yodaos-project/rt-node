@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <assert.h>
+#include <pthread.h>
 #include "js-binding.h"
 #include "js-error.h"
 #include "js-logger.h"

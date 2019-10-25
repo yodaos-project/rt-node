@@ -2,6 +2,7 @@ set(COMPONENT_ADD_INCLUDEDIRS
   ../../deps/jerryscript/jerry-core/include
   ../../deps/jerryscript/jerry-ext/include
   ../../deps/jerryscript/jerry-port/default/include
+  ../../deps/queue/include
   ../../src
   ../../src/modules
 )
@@ -15,6 +16,7 @@ set(COMPONENT_SRCS
   ../../src/js-native.c
   ../../src/js-snapshots.c
   ../../src/js-common.c
+  ../../src/js-threadpool.c
   ../../src/modules/js-module-console.c
   ../../src/modules/js-module-gpio.c
   ../../src/modules/js-module-process.c
