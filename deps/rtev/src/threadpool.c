@@ -1,4 +1,4 @@
-#include "js-threadpool.h"
+#include "threadpool.h"
 #include "queue.h"
 
 typedef enum {
@@ -58,9 +58,8 @@ static void* threadpool_run_task(void *data) {
     pthread_mutex_lock(&task_lock);
     NEW_TASK;
   }
-  js_free(runner);
+  rtev_free(runner);
   --threadpool_size;
-  LOG_INFO("threadpool size: %d", threadpool_size);
   pthread_exit(NULL);
   return NULL;
 }
@@ -72,7 +71,7 @@ void threadpool_init(int size) {
   threadpool_size = size;
   QUEUE_INIT(&task_queue);
   size_t threadpool_bytes = sizeof(threadpool_runner) * size;
-  task_runners = js_malloc(threadpool_bytes);
+  task_runners = rtev_malloc(threadpool_bytes);
   memset(task_runners, 0, threadpool_bytes);
   pthread_mutex_init(&task_lock, NULL);
   pthread_cond_init(&task_cond, NULL);
@@ -85,7 +84,7 @@ void threadpool_init(int size) {
 }
 
 void threadpool_post_task(threadpool_func func, void *data) {
-  threadpool_task *task = js_malloc(sizeof(threadpool_task));
+  threadpool_task *task = rtev_malloc(sizeof(threadpool_task));
   memset(task, 0, sizeof(threadpool_task));
   task->func = func;
   task->func_data = data;

@@ -6,6 +6,7 @@
 cmake_minimum_required(VERSION 3.5)
 
 set(JERRYSCRIPT_SOURCE "${CMAKE_SOURCE_DIR}/deps/jerryscript")
+set(RTEV_SOURCE "${CMAKE_SOURCE_DIR}/deps/rtev")
 
 # Jerryscript setting here
 set(JERRY_GLOBAL_HEAP_SIZE "(512)")

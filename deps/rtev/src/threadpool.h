@@ -1,7 +1,7 @@
-#ifndef _JS_THREADPOOL_H
-#define _JS_THREADPOOL_H
+#ifndef _RTEV_THREADPOOL_H_
+#define _RTEV_THREADPOOL_H_
 
-#include "js-common.h"
+#include "rtev.h"
 
 typedef void (*threadpool_func)(void *data);
 
@@ -9,4 +9,4 @@ void threadpool_init(int size);
 
 void threadpool_post_task(threadpool_func func, void *data);
 
-#endif // _JS_THREADPOOL_H
+#endif // _RTEV_THREADPOOL_H_
