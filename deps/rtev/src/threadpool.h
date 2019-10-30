@@ -3,10 +3,10 @@
 
 #include "rtev.h"
 
-typedef void (*threadpool_func)(void *data);
+typedef void (*rtev_threadpool_func)(void *data);
 
-void threadpool_init(int size);
+void rtev_threadpool_init(int size);
 
-void threadpool_post_task(threadpool_func func, void *data);
+void rtev_threadpool_post(rtev_threadpool_func func, void *data);
 
 #endif // _RTEV_THREADPOOL_H_

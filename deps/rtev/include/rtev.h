@@ -9,14 +9,15 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 #include "queue.h"
 
-#define RTEV_ASSERT(exp, reason)              \
-  do {                                        \
-    if (!(exp)) {                             \
-      fprintf(stderr, #exp ", %s", reason);   \
-      abort();                                \
-    }                                         \
+#define RTEV_ASSERT(exp, reason)                                \
+  do {                                                          \
+    if (!(exp)) {                                               \
+      fprintf(stderr, #exp ", %s\n", reason);                   \
+      abort();                                                  \
+    }                                                           \
   } while (0)
 
 typedef enum {
@@ -50,22 +51,25 @@ struct rtev_ctx_t {
   rtev_watcher_t *closing_watchers;
   rtev_watcher_t *pending_watchers;
   uint64_t watcher_count;
-  uint64_t time;
+  uint64_t time; // in ms
   pthread_mutex_t mutex;
   pthread_cond_t cond;
 };
 
 // watcher common structure start
 typedef void (*rtev_watcher_close_cb)(rtev_watcher_t *watcher);
-#define RTEV_WATCHER_FIELDS                   \
-  /* public fields */                         \
-  void *data;                                 \
-  rtev_watcher_close_cb close_cb;             \
-  /* private fields */                        \
-  QUEUE node;                                 \
-  rtev_watcher_state_t state;                 \
-  rtev_ctx_t *ctx;                            \
-  rtev_watcher_t *next_watcher;               \
+
+// watcher common fields
+#define RTEV_WATCHER_FIELDS                                     \
+  /* public fields */                                           \
+  void *data;                                                   \
+  /* close_cb will release the watcher by default */            \
+  rtev_watcher_close_cb close_cb;                               \
+  /* private fields */                                          \
+  QUEUE node;                                                   \
+  rtev_watcher_state_t state;                                   \
+  rtev_ctx_t *ctx;                                              \
+  rtev_watcher_t *next_watcher;                                 \
   rtev_watcher_type_t type;
 
 // common structure for watchers
@@ -77,7 +81,7 @@ struct rtev_watcher_t {
 typedef void (*rtev_timer_cb)(rtev_timer_t *timer);
 struct rtev_timer_t {
   RTEV_WATCHER_FIELDS;
-  uint64_t timeout;
+  uint64_t timeout; // in ms
   uint64_t repeat;
   rtev_timer_cb cb;
 };
@@ -119,7 +123,8 @@ int _rtev_watcher_stop(rtev_watcher_t *watcher);
 int _rtev_watcher_close(rtev_watcher_t *watcher);
 void _rtev_add_pending_watchers(rtev_ctx_t *ctx);
 void _rtev_close_watchers(rtev_ctx_t *ctx);
-int _rtev_get_next_timeout(rtev_ctx_t *ctx, struct timespec *spec);
+void _rtev_set_next_timeout(rtev_ctx_t *ctx, struct timespec *spec);
 void _rtev_run_timers(rtev_ctx_t *ctx);
+void _rtev_update_time(rtev_ctx_t *ctx);
 
 #endif // _RTEV_H_

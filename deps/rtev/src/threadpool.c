@@ -1,5 +1,4 @@
 #include "threadpool.h"
-#include "queue.h"
 
 typedef enum {
   RUNNING = 0,
@@ -7,7 +6,7 @@ typedef enum {
 } threadpool_state;
 
 typedef struct {
-  threadpool_func func;
+  rtev_threadpool_func func;
   void *func_data;
   QUEUE node;
 } threadpool_task;
@@ -61,7 +60,6 @@ static void* threadpool_run_task(void *data) {
   rtev_free(runner);
   --threadpool_size;
   pthread_exit(NULL);
-  return NULL;
 }
 
 #undef NEW_TASK
@@ -83,7 +81,7 @@ void threadpool_init(int size) {
   }
 }
 
-void threadpool_post_task(threadpool_func func, void *data) {
+void rtev_threadpool_post(rtev_threadpool_func func, void *data) {
   threadpool_task *task = rtev_malloc(sizeof(threadpool_task));
   memset(task, 0, sizeof(threadpool_task));
   task->func = func;
@@ -96,7 +94,7 @@ void threadpool_post_task(threadpool_func func, void *data) {
   pthread_mutex_unlock(&task_lock);
 }
 
-void threadpool_stop() {
+void rtev_threadpool_stop() {
   pthread_mutex_lock(&task_lock);
   task_state = STOPPED;
   pthread_cond_signal(&task_cond);

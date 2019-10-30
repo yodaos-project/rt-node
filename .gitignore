@@ -1,5 +1,6 @@
 .vscode/
 build/
+.idea/
 sdkconfig
 .DS_Store
 js-snapshots.h
