@@ -1,21 +1,16 @@
 #include "rtev.h"
 
-static void rtev_watcher_on_close(rtev_watcher_t *watcher) {
-  rtev_free(watcher);
-}
-
 int _rtev_watcher_init(rtev_ctx_t *ctx, rtev_watcher_t *watcher,
-  rtev_watcher_type_t type) {
+  rtev_watcher_type_t type, rtev_watcher_close_cb close_cb) {
   RTEV_ASSERT(ctx != NULL, "ctx is null");
   RTEV_ASSERT(watcher != NULL, "watcher is null");
   watcher->ctx= ctx;
   watcher->state = RTEV_STATE_PENDING;
   watcher->data = NULL;
-  watcher->close_cb = rtev_watcher_on_close;
+  watcher->close_cb = close_cb;
   QUEUE_INIT(&watcher->node);
   watcher->type = type;
   watcher->next_watcher = NULL;
-  ++ctx->watcher_count;
   return 0;
 }
 
@@ -32,16 +27,27 @@ int _rtev_watcher_start(rtev_watcher_t *watcher) {
   return 0;
 }
 
-int _rtev_watcher_stop(rtev_watcher_t *watcher) {
-  watcher->state = RTEV_STATE_STOPPED;
-  return 0;
-}
-
 int _rtev_watcher_close(rtev_watcher_t *watcher) {
-  RTEV_ASSERT(watcher->state == RTEV_STATE_RUNNING, "watcher is not running");
+  RTEV_ASSERT(watcher->state == RTEV_STATE_PENDING ||
+    watcher->state == RTEV_STATE_RUNNING, "watcher is not valid");
+  if (watcher->state == RTEV_STATE_PENDING) {
+    rtev_watcher_t **w = &watcher->ctx->pending_watchers;
+    while (*w) {
+      if ((*w) == watcher) {
+        *w = NULL;
+        break;
+      }
+      if ((*w)->next_watcher == watcher) {
+        (*w)->next_watcher = watcher->next_watcher;
+        break;
+      }
+      w = &(*w)->next_watcher;
+    }
+    watcher->next_watcher = NULL;
+  }
   watcher->state = RTEV_STATE_CLOSING;
   rtev_watcher_t **last_watcher = &watcher->ctx->closing_watchers;
-  while (*last_watcher != NULL) {
+  while (*last_watcher) {
     last_watcher = &(*last_watcher)->next_watcher;
   }
   *last_watcher = watcher;
@@ -49,8 +55,11 @@ int _rtev_watcher_close(rtev_watcher_t *watcher) {
 }
 
 void _rtev_add_pending_watchers(rtev_ctx_t *ctx) {
-  rtev_watcher_t *watcher = ctx->pending_watchers;
-  while (watcher) {
+  rtev_watcher_t *watcher;
+  while (ctx->pending_watchers) {
+    watcher = ctx->pending_watchers;
+    ctx->pending_watchers = watcher->next_watcher;
+    watcher->next_watcher = NULL;
     RTEV_ASSERT(watcher->state = RTEV_STATE_PENDING, "watcher is not pending");
     watcher->state = RTEV_STATE_RUNNING;
     if (watcher->type == RTEV_TYPE_TIMER) {
@@ -73,17 +82,16 @@ void _rtev_add_pending_watchers(rtev_ctx_t *ctx) {
     } else {
       RTEV_ASSERT(0, "unknown watcher type");
     }
-    watcher = watcher->next_watcher;
   }
-  ctx->pending_watchers = NULL;
 }
 
 void _rtev_close_watchers(rtev_ctx_t *ctx) {
   rtev_watcher_t *watcher;
   while (ctx->closing_watchers) {
     watcher = ctx->closing_watchers;
-    RTEV_ASSERT(watcher->state == RTEV_STATE_CLOSING, "watcher is not closing");
     ctx->closing_watchers = watcher->next_watcher;
+    watcher->next_watcher = NULL;
+    RTEV_ASSERT(watcher->state == RTEV_STATE_CLOSING, "watcher is not closing");
     QUEUE_REMOVE(&watcher->node);
     QUEUE_INIT(&watcher->node);
     watcher->state = RTEV_STATE_CLOSED;
@@ -92,5 +100,4 @@ void _rtev_close_watchers(rtev_ctx_t *ctx) {
       watcher->close_cb(watcher);
     }
   }
-  ctx->closing_watchers = NULL;
 }

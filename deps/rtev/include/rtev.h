@@ -31,11 +31,10 @@ typedef enum {
 } rtev_watcher_type_t;
 
 typedef enum {
-  RTEV_STATE_PENDING = 1 << 0, // out of queue, insert at tick start
-  RTEV_STATE_RUNNING = 1 << 1, // in the queue, able to tirgger 
-  RTEV_STATE_STOPPED = 1 << 2, // in the queue, unable to trigger
-  RTEV_STATE_CLOSING = 1 << 3, // in the queue, remove at tick end
-  RTEV_STATE_CLOSED = 1 << 4, // removed from queue
+  RTEV_STATE_PENDING = 1, // out of queue, insert at tick start
+  RTEV_STATE_RUNNING,     // in the queue, able to tirgger
+  RTEV_STATE_CLOSING,     // in the queue, remove at tick end
+  RTEV_STATE_CLOSED,      // removed from queue
 } rtev_watcher_state_t;
 
 typedef struct rtev_ctx_t rtev_ctx_t;
@@ -51,19 +50,18 @@ struct rtev_ctx_t {
   rtev_watcher_t *closing_watchers;
   rtev_watcher_t *pending_watchers;
   uint64_t watcher_count;
-  uint64_t time; // in ms
+  uint64_t time;          // in ms
   pthread_mutex_t mutex;
   pthread_cond_t cond;
 };
 
-// watcher common structure start
+// watcher close callback
 typedef void (*rtev_watcher_close_cb)(rtev_watcher_t *watcher);
 
 // watcher common fields
 #define RTEV_WATCHER_FIELDS                                     \
   /* public fields */                                           \
   void *data;                                                   \
-  /* close_cb will release the watcher by default */            \
   rtev_watcher_close_cb close_cb;                               \
   /* private fields */                                          \
   QUEUE node;                                                   \
@@ -81,7 +79,7 @@ struct rtev_watcher_t {
 typedef void (*rtev_timer_cb)(rtev_timer_t *timer);
 struct rtev_timer_t {
   RTEV_WATCHER_FIELDS;
-  uint64_t timeout; // in ms
+  uint64_t timeout;       // in ms
   uint64_t repeat;
   rtev_timer_cb cb;
 };
@@ -95,31 +93,29 @@ struct rtev_async_t {
 };
 
 // core fn start
-int rtev_loop_init(rtev_ctx_t *ctx);
-int rtev_loop_run(rtev_ctx_t *ctx, rtev_run_type_t type);
-int rtev_stop(rtev_ctx_t *ctx);
+int rtev_ctx_init(rtev_ctx_t *ctx);
+int rtev_ctx_run(rtev_ctx_t *ctx, rtev_run_type_t type);
 
 // memory allocator fn start
-int rtev_init(rtev_ctx_t *ctx);
 int rtev_set_allocator(void* (*malloc_fn)(size_t), void (*free_fn)(void *));
 void* rtev_malloc(size_t size);
 void rtev_free(void *ptr);
 
 // timer fn start
-int rtev_timer_start(rtev_ctx_t *ctx, rtev_timer_t *timer, uint64_t timeout, uint64_t repeat, rtev_timer_cb cb);
-int rtev_timer_stop(rtev_timer_t *timer);
+int rtev_timer_start(rtev_ctx_t *ctx, rtev_timer_t *timer, uint64_t timeout,
+  uint64_t repeat, rtev_timer_cb cb, rtev_watcher_close_cb close_cb);
 int rtev_timer_close(rtev_timer_t *timer);
 
 // async fn start
-int rtev_async_start(rtev_ctx_t *ctx, rtev_async_t *async, rtev_async_cb cb, rtev_async_cb after_cb);
+int rtev_async_start(rtev_ctx_t *ctx, rtev_async_t *async, rtev_async_cb cb,
+  rtev_async_cb after_cb, rtev_watcher_close_cb close_cb);
 int rtev_async_send(rtev_async_t *async);
-int rtev_async_stop(rtev_async_t *async);
 int rtev_async_close(rtev_async_t *async);
 
 // internal fn start
-int _rtev_watcher_init(rtev_ctx_t *ctx, rtev_watcher_t *watcher, rtev_watcher_type_t type);
+int _rtev_watcher_init(rtev_ctx_t *ctx, rtev_watcher_t *watcher,
+  rtev_watcher_type_t type, rtev_watcher_close_cb close_cb);
 int _rtev_watcher_start(rtev_watcher_t *watcher);
-int _rtev_watcher_stop(rtev_watcher_t *watcher);
 int _rtev_watcher_close(rtev_watcher_t *watcher);
 void _rtev_add_pending_watchers(rtev_ctx_t *ctx);
 void _rtev_close_watchers(rtev_ctx_t *ctx);

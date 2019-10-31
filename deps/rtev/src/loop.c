@@ -1,6 +1,6 @@
 #include "rtev.h"
 
-int rtev_loop_init(rtev_ctx_t *ctx) {
+int rtev_ctx_init(rtev_ctx_t *ctx) {
   ctx->is_running = false;
   QUEUE_INIT(&ctx->timer_queue);
   QUEUE_INIT(&ctx->async_queue);
@@ -19,7 +19,7 @@ int rtev_loop_init(rtev_ctx_t *ctx) {
   return 0;
 }
 
-int rtev_loop_run(rtev_ctx_t *ctx, rtev_run_type_t type) {
+int rtev_ctx_run(rtev_ctx_t *ctx, rtev_run_type_t type) {
   RTEV_ASSERT(!ctx->is_running, "ctx is running");
   ctx->is_running = true;
   struct timespec next_time;
@@ -43,8 +43,13 @@ int rtev_loop_run(rtev_ctx_t *ctx, rtev_run_type_t type) {
 #define RTEV_CHECK_QUEUE(name) \
   RTEV_ASSERT(QUEUE_EMPTY(&ctx->name), "ctx->" #name " is not empty");
 
+#define RTEV_CHECK_LINK(name) \
+  RTEV_ASSERT(!ctx->name, "ctx->" #name " is not empty");
+
   RTEV_CHECK_QUEUE(timer_queue);
   RTEV_CHECK_QUEUE(async_queue);
+  RTEV_CHECK_LINK(pending_watchers);
+  RTEV_CHECK_LINK(closing_watchers);
 
 #undef RTEV_CHECK_QUEUE
 
