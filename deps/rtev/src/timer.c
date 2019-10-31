@@ -7,7 +7,7 @@ void _rtev_update_time(rtev_ctx_t *ctx) {
 }
 
 int rtev_timer_start(rtev_ctx_t *ctx, rtev_timer_t *timer, uint64_t timeout,
-  uint64_t repeat, rtev_timer_cb cb, rtev_watcher_close_cb close_cb) {
+  uint64_t repeat, rtev_timer_cb cb, rtev_close_cb close_cb) {
   rtev_watcher_t *w = (rtev_watcher_t *) timer;
   int r = _rtev_watcher_init(ctx, w, RTEV_TYPE_TIMER, close_cb);
   if (r != 0) {
@@ -17,7 +17,7 @@ int rtev_timer_start(rtev_ctx_t *ctx, rtev_timer_t *timer, uint64_t timeout,
   timer->repeat = repeat;
   timer->cb = cb;
 
-  return _rtev_watcher_start((rtev_watcher_t *) timer);
+  return _rtev_watcher_start(w);
 }
 
 int rtev_timer_close(rtev_timer_t *timer) {

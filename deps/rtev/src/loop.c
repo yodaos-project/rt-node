@@ -4,7 +4,9 @@ int rtev_ctx_init(rtev_ctx_t *ctx) {
   ctx->is_running = false;
   QUEUE_INIT(&ctx->timer_queue);
   QUEUE_INIT(&ctx->async_queue);
+  QUEUE_INIT(&ctx->tick_queue);
   ctx->watcher_count = 0;
+  _rtev_threadpool_init();
   pthread_mutex_init(&ctx->mutex, NULL);
   pthread_condattr_t cond_attr;
   pthread_condattr_init(&cond_attr);
@@ -37,6 +39,8 @@ int rtev_ctx_run(rtev_ctx_t *ctx, rtev_run_type_t type) {
 #endif
     RTEV_ASSERT(r != 0 || r != ETIMEDOUT, "unexpected time wait error");
     pthread_mutex_unlock(&ctx->mutex);
+    _rtev_run_async(ctx);
+    _rtev_run_ticks(ctx);
     _rtev_close_watchers(ctx);
   }
 
@@ -48,9 +52,11 @@ int rtev_ctx_run(rtev_ctx_t *ctx, rtev_run_type_t type) {
 
   RTEV_CHECK_QUEUE(timer_queue);
   RTEV_CHECK_QUEUE(async_queue);
+  RTEV_CHECK_QUEUE(tick_queue);
   RTEV_CHECK_LINK(pending_watchers);
   RTEV_CHECK_LINK(closing_watchers);
 
+#undef RTEV_CHECK_LINK
 #undef RTEV_CHECK_QUEUE
 
   return 0;

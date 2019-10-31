@@ -28,11 +28,12 @@ typedef enum {
 typedef enum {
   RTEV_TYPE_TIMER = 1,
   RTEV_TYPE_ASYNC,
+  RTEV_TYPE_TICK,
 } rtev_watcher_type_t;
 
 typedef enum {
   RTEV_STATE_PENDING = 1, // out of queue, insert at tick start
-  RTEV_STATE_RUNNING,     // in the queue, able to tirgger
+  RTEV_STATE_RUNNING,     // in the queue
   RTEV_STATE_CLOSING,     // in the queue, remove at tick end
   RTEV_STATE_CLOSED,      // removed from queue
 } rtev_watcher_state_t;
@@ -41,12 +42,14 @@ typedef struct rtev_ctx_t rtev_ctx_t;
 typedef struct rtev_watcher_t rtev_watcher_t;
 typedef struct rtev_async_t rtev_async_t;
 typedef struct rtev_timer_t rtev_timer_t;
+typedef struct rtev_tick_t rtev_tick_t;
 
 // context structure start
 struct rtev_ctx_t {
   bool is_running;
   QUEUE timer_queue;
   QUEUE async_queue;
+  QUEUE tick_queue;
   rtev_watcher_t *closing_watchers;
   rtev_watcher_t *pending_watchers;
   uint64_t watcher_count;
@@ -56,14 +59,14 @@ struct rtev_ctx_t {
 };
 
 // watcher close callback
-typedef void (*rtev_watcher_close_cb)(rtev_watcher_t *watcher);
+typedef void (*rtev_close_cb)(rtev_watcher_t *watcher);
 
 // watcher common fields
 #define RTEV_WATCHER_FIELDS                                     \
   /* public fields */                                           \
   void *data;                                                   \
-  rtev_watcher_close_cb close_cb;                               \
   /* private fields */                                          \
+  rtev_close_cb close_cb;                                       \
   QUEUE node;                                                   \
   rtev_watcher_state_t state;                                   \
   rtev_ctx_t *ctx;                                              \
@@ -85,11 +88,18 @@ struct rtev_timer_t {
 };
 
 // async structure start
-typedef void (*rtev_async_cb)(rtev_async_t *async, void *data);
+typedef void (*rtev_async_cb)(rtev_async_t *async);
 struct rtev_async_t {
   RTEV_WATCHER_FIELDS;
-  rtev_async_cb cb;
-  rtev_async_cb after_cb;
+  int pending;
+  rtev_async_cb cb;       // run in main thread
+};
+
+// tick structure start
+typedef void (*rtev_tick_cb)(rtev_tick_t *tick);
+struct rtev_tick_t {
+  RTEV_WATCHER_FIELDS;
+  rtev_tick_cb cb;
 };
 
 // core fn start
@@ -103,24 +113,37 @@ void rtev_free(void *ptr);
 
 // timer fn start
 int rtev_timer_start(rtev_ctx_t *ctx, rtev_timer_t *timer, uint64_t timeout,
-  uint64_t repeat, rtev_timer_cb cb, rtev_watcher_close_cb close_cb);
+  uint64_t repeat, rtev_timer_cb cb, rtev_close_cb close_cb);
 int rtev_timer_close(rtev_timer_t *timer);
 
 // async fn start
+typedef void (*rtev_threadpool_fn)(void *data);
 int rtev_async_start(rtev_ctx_t *ctx, rtev_async_t *async, rtev_async_cb cb,
-  rtev_async_cb after_cb, rtev_watcher_close_cb close_cb);
+  rtev_close_cb close_cb);
+/* call in other threads to make an async callback in main thread */
 int rtev_async_send(rtev_async_t *async);
 int rtev_async_close(rtev_async_t *async);
 
+// tick fn start
+int rtev_tick_start(rtev_ctx_t *ctx, rtev_tick_t *tick, rtev_tick_cb cb,
+  rtev_close_cb close_cb);
+int rtev_tick_close(rtev_tick_t *tick);
+
+// threadpool fn start
+void rtev_threadpool_post(rtev_threadpool_fn fn, void *data);
+
 // internal fn start
 int _rtev_watcher_init(rtev_ctx_t *ctx, rtev_watcher_t *watcher,
-  rtev_watcher_type_t type, rtev_watcher_close_cb close_cb);
+  rtev_watcher_type_t type, rtev_close_cb close_cb);
 int _rtev_watcher_start(rtev_watcher_t *watcher);
 int _rtev_watcher_close(rtev_watcher_t *watcher);
 void _rtev_add_pending_watchers(rtev_ctx_t *ctx);
 void _rtev_close_watchers(rtev_ctx_t *ctx);
 void _rtev_set_next_timeout(rtev_ctx_t *ctx, struct timespec *spec);
-void _rtev_run_timers(rtev_ctx_t *ctx);
 void _rtev_update_time(rtev_ctx_t *ctx);
+void _rtev_threadpool_init();
+void _rtev_run_async(rtev_ctx_t *ctx);
+void _rtev_run_timers(rtev_ctx_t *ctx);
+void _rtev_run_ticks(rtev_ctx_t *ctx);
 
 #endif // _RTEV_H_

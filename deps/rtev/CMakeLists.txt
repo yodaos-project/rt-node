@@ -6,7 +6,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g")
 include_directories(./include)
 include_directories(./src)
 aux_source_directory(./src SRC_LIST)
-add_library(rtev ${SRC_LIST})
+add_library(rtev ${SRC_LIST} src/atomic-ops.h)
 
 if("${RTEV_TESTS}" STREQUAL "ON")
   add_executable(test ./test/test.c)

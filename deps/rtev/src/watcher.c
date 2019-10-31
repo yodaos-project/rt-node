@@ -1,7 +1,26 @@
 #include "rtev.h"
 
+static void rtev_remove_watcher_from_link(rtev_watcher_t *watcher,
+                                          rtev_watcher_t **head) {
+  while (*head) {
+    if ((*head) == watcher) {
+      *head = NULL;
+      break;
+    }
+    if ((*head)->next_watcher == watcher) {
+      (*head)->next_watcher = watcher->next_watcher;
+      break;
+    }
+    head = &(*head)->next_watcher;
+  }
+  watcher->next_watcher = NULL;
+}
+
 int _rtev_watcher_init(rtev_ctx_t *ctx, rtev_watcher_t *watcher,
-  rtev_watcher_type_t type, rtev_watcher_close_cb close_cb) {
+  rtev_watcher_type_t type, rtev_close_cb close_cb) {
+  if (watcher->state == RTEV_STATE_CLOSING) {
+    rtev_remove_watcher_from_link(watcher, &watcher->ctx->closing_watchers);
+  }
   RTEV_ASSERT(ctx != NULL, "ctx is null");
   RTEV_ASSERT(watcher != NULL, "watcher is null");
   watcher->ctx= ctx;
@@ -31,19 +50,7 @@ int _rtev_watcher_close(rtev_watcher_t *watcher) {
   RTEV_ASSERT(watcher->state == RTEV_STATE_PENDING ||
     watcher->state == RTEV_STATE_RUNNING, "watcher is not valid");
   if (watcher->state == RTEV_STATE_PENDING) {
-    rtev_watcher_t **w = &watcher->ctx->pending_watchers;
-    while (*w) {
-      if ((*w) == watcher) {
-        *w = NULL;
-        break;
-      }
-      if ((*w)->next_watcher == watcher) {
-        (*w)->next_watcher = watcher->next_watcher;
-        break;
-      }
-      w = &(*w)->next_watcher;
-    }
-    watcher->next_watcher = NULL;
+    rtev_remove_watcher_from_link(watcher, &watcher->ctx->pending_watchers);
   }
   watcher->state = RTEV_STATE_CLOSING;
   rtev_watcher_t **last_watcher = &watcher->ctx->closing_watchers;
@@ -79,6 +86,8 @@ void _rtev_add_pending_watchers(rtev_ctx_t *ctx) {
       }
     } else if (watcher->type == RTEV_TYPE_ASYNC) {
       QUEUE_INSERT_TAIL(&ctx->async_queue, &watcher->node);
+    } else if (watcher->type == RTEV_TYPE_TICK) {
+      QUEUE_INSERT_TAIL(&ctx->tick_queue, &watcher->node);
     } else {
       RTEV_ASSERT(0, "unknown watcher type");
     }
