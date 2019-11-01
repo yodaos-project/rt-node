@@ -23,7 +23,6 @@ void _rtev_run_ticks(rtev_ctx_t *ctx) {
     if (t->state != RTEV_STATE_RUNNING) {
       continue;
     }
-    rtev_tick_close(t);
     t->cb(t);
   }
 }

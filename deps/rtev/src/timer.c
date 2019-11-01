@@ -1,4 +1,5 @@
 #include "rtev.h"
+#include "atomic-ops.h"
 
 void _rtev_update_time(rtev_ctx_t *ctx) {
   struct timespec spec;
@@ -25,10 +26,13 @@ int rtev_timer_close(rtev_timer_t *timer) {
 }
 
 void _rtev_set_next_timeout(rtev_ctx_t *ctx, struct timespec *spec) {
-#if defined(__APPLE__) && defined(__MACH__)
   spec->tv_sec = 0;
   spec->tv_nsec = 0;
-#else
+  // handle async events asap
+  if (cmpxchgi(&ctx->async_pending, 1, 0) == 1) {
+    return;
+  }
+#if !(defined(__APPLE__) && defined(__MACH__))
   clock_gettime(CLOCK_MONOTONIC, spec);
 #endif
   QUEUE *q;

@@ -28,6 +28,9 @@ void on_tick_cb(rtev_tick_t *tick) {
   int *times = (int*) &tick->data;
   ++*times;
   printf("event loop tick %d times\n", *times);
+  if (*times >= 8) {
+    rtev_tick_close(tick);
+  }
 }
 
 int main(int argc, char **argv) {
@@ -42,7 +45,7 @@ int main(int argc, char **argv) {
   rtev_async_start(&ctx, &async, on_async_cb, on_close);
   rtev_tick_start(&ctx, &tick, on_tick_cb, on_close);
   rtev_threadpool_post(on_thread_fn, &async);
-  rtev_ctx_run(&ctx, RTEV_RUN_DEFAULT);
+  rtev_ctx_loop(&ctx, RTEV_RUN_DEFAULT);
   printf("main thread end\n");
   return 0;
 }

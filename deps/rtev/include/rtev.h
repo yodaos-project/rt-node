@@ -54,8 +54,9 @@ struct rtev_ctx_t {
   rtev_watcher_t *pending_watchers;
   uint64_t watcher_count;
   uint64_t time;          // in ms
-  pthread_mutex_t mutex;
-  pthread_cond_t cond;
+  pthread_mutex_t async_mutex;
+  pthread_cond_t async_cond;
+  int async_pending;
 };
 
 // watcher close callback
@@ -104,7 +105,7 @@ struct rtev_tick_t {
 
 // core fn start
 int rtev_ctx_init(rtev_ctx_t *ctx);
-int rtev_ctx_run(rtev_ctx_t *ctx, rtev_run_type_t type);
+int rtev_ctx_loop(rtev_ctx_t *ctx, rtev_run_type_t type);
 
 // memory allocator fn start
 int rtev_set_allocator(void* (*malloc_fn)(size_t), void (*free_fn)(void *));

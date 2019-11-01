@@ -7,21 +7,22 @@ int rtev_ctx_init(rtev_ctx_t *ctx) {
   QUEUE_INIT(&ctx->tick_queue);
   ctx->watcher_count = 0;
   _rtev_threadpool_init();
-  pthread_mutex_init(&ctx->mutex, NULL);
+  pthread_mutex_init(&ctx->async_mutex, NULL);
   pthread_condattr_t cond_attr;
   pthread_condattr_init(&cond_attr);
 #if !(defined(__APPLE__) && defined(__MACH__))
   pthread_condattr_setclock(&cond_attr, CLOCK_MONOTONIC);
 #endif
-  pthread_cond_init(&ctx->cond, &cond_attr);
+  pthread_cond_init(&ctx->async_cond, &cond_attr);
   pthread_condattr_destroy(&cond_attr);
   ctx->closing_watchers = NULL;
   ctx->pending_watchers = NULL;
+  ctx->async_pending = 0;
   _rtev_update_time(ctx);
   return 0;
 }
 
-int rtev_ctx_run(rtev_ctx_t *ctx, rtev_run_type_t type) {
+int rtev_ctx_loop(rtev_ctx_t *ctx, rtev_run_type_t type) {
   RTEV_ASSERT(!ctx->is_running, "ctx is running");
   ctx->is_running = true;
   struct timespec next_time;
@@ -31,14 +32,15 @@ int rtev_ctx_run(rtev_ctx_t *ctx, rtev_run_type_t type) {
     _rtev_add_pending_watchers(ctx);
     _rtev_run_timers(ctx);
     _rtev_set_next_timeout(ctx, &next_time);
-    pthread_mutex_lock(&ctx->mutex);
+    pthread_mutex_lock(&ctx->async_mutex);
 #if defined(__APPLE__) && defined(__MACH__)
-    r = pthread_cond_timedwait_relative_np(&ctx->cond, &ctx->mutex, &next_time);
+    r = pthread_cond_timedwait_relative_np(
+      &ctx->async_cond, &ctx->async_mutex, &next_time);
 #else
-    r = pthread_cond_timedwait(&ctx->cond, &ctx->mutex, &next_time);
+    r = pthread_cond_timedwait(&ctx->async_cond, &ctx->async_mutex, &next_time);
 #endif
     RTEV_ASSERT(r != 0 || r != ETIMEDOUT, "unexpected time wait error");
-    pthread_mutex_unlock(&ctx->mutex);
+    pthread_mutex_unlock(&ctx->async_mutex);
     _rtev_run_async(ctx);
     _rtev_run_ticks(ctx);
     _rtev_close_watchers(ctx);
