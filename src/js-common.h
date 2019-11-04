@@ -1,10 +1,7 @@
 #ifndef _JS_COMMON_H_
 #define _JS_COMMON_H_
 
-#include <unistd.h>
-#include <string.h>
-#include <assert.h>
-#include <pthread.h>
+#include "rtev.h"
 #include "js-binding.h"
 #include "js-error.h"
 #include "js-logger.h"
@@ -33,7 +30,7 @@
   TYPE* NAME = NULL;                                                  \
   do {                                                                \
     if (!jerry_get_object_native_pointer(JOBJ, (void**)&NAME,         \
-                                         &this_module_native_info)) { \
+                                         &native_info)) {             \
       return JS_CREATE_ERROR(COMMON, "Internal");                     \
     }                                                                 \
   } while (0)
@@ -61,5 +58,13 @@ void* js_jerry_alloc(size_t size, void *cb_data);
 uint64_t js_get_memory_total();
 
 uint64_t js_get_memory_alloc_count();
+
+typedef struct {
+  rtev_ctx_t *rtev;
+  jerry_context_t* jerry;
+} js_context_t;
+
+extern js_context_t *js_ctx;
+
 
 #endif // _JS_COMMON_H_

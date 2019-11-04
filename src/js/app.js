@@ -21,4 +21,3 @@ timer.on('timeout', function (timeout) {
   console.log('time out after ' + timeout + 'ms')
   console.log('memory usage: ', process.memoryUsage())
 })
-

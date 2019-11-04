@@ -76,7 +76,7 @@ jerry_value_t js_call_function(const jerry_value_t jfunc,
   const jerry_char_t *source) {
   jerry_value_t jret =
     js_call_function_no_tick(jfunc, jthis, jargv, jargc, source);
-  js_run_next_tick();
+  // js_run_next_tick();
   return jret;
 }
 

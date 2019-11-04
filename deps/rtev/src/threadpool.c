@@ -16,12 +16,11 @@ typedef struct {
   int id;
 } threadpool_runner;
 
-static threadpool_runner *task_runners = NULL;
 #ifndef RTEV_THREADPOOL_SIZE
-static int threadpool_size = 1;
-#else
-static int threadpool_size = RTEV_THREADPOOL_SIZE;
+#define RTEV_THREADPOOL_SIZE 1
 #endif
+static int threadpool_size = RTEV_THREADPOOL_SIZE;
+static threadpool_runner task_runners[RTEV_THREADPOOL_SIZE];
 static QUEUE task_queue;
 static int task_size = 0;
 static pthread_mutex_t task_lock;
@@ -38,7 +37,6 @@ static threadpool_state task_state;
   }
 
 static void* rtev_threadpool_run_task(void *data) {
-  threadpool_runner *runner = (threadpool_runner *) data;
   threadpool_task *task = NULL;
   pthread_mutex_lock(&task_lock);
   while (true) {
@@ -61,9 +59,8 @@ static void* rtev_threadpool_run_task(void *data) {
     task = NULL;
     pthread_mutex_lock(&task_lock);
   }
-  rtev_free(runner);
   --threadpool_size;
-  pthread_exit(NULL);
+  return NULL;
 }
 
 #undef NEW_TASK
@@ -71,9 +68,6 @@ static void* rtev_threadpool_run_task(void *data) {
 void _rtev_threadpool_init() {
   task_state = RUNNING;
   QUEUE_INIT(&task_queue);
-  size_t threadpool_bytes = sizeof(threadpool_runner) * threadpool_size;
-  task_runners = rtev_malloc(threadpool_bytes);
-  memset(task_runners, 0, threadpool_bytes);
   pthread_mutex_init(&task_lock, NULL);
   pthread_cond_init(&task_cond, NULL);
   for (int i = 0; i < threadpool_size; ++i) {
@@ -97,7 +91,7 @@ void rtev_threadpool_post(rtev_threadpool_fn fn, void *data) {
   pthread_mutex_unlock(&task_lock);
 }
 
-void _rtev_threadpool_stop() {
+void rtev_threadpool_stop() {
   pthread_mutex_lock(&task_lock);
   task_state = STOPPED;
   pthread_cond_signal(&task_cond);

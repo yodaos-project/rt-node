@@ -14,7 +14,10 @@ int rtev_ctx_init(rtev_ctx_t *ctx) {
   pthread_condattr_setclock(&cond_attr, CLOCK_MONOTONIC);
 #endif
   pthread_cond_init(&ctx->async_cond, &cond_attr);
+  // FIXME: link error in esp-idf
+#ifndef __FREERTOS__
   pthread_condattr_destroy(&cond_attr);
+#endif
   ctx->closing_watchers = NULL;
   ctx->pending_watchers = NULL;
   ctx->async_pending = 0;
@@ -60,6 +63,6 @@ int rtev_ctx_loop(rtev_ctx_t *ctx, rtev_run_type_t type) {
 
 #undef RTEV_CHECK_LINK
 #undef RTEV_CHECK_QUEUE
-
+  rtev_threadpool_stop();
   return 0;
 }

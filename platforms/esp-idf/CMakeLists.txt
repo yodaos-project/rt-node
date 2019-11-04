@@ -3,6 +3,7 @@ set(COMPONENT_ADD_INCLUDEDIRS
   ../../deps/jerryscript/jerry-ext/include
   ../../deps/jerryscript/jerry-port/default/include
   ../../deps/rtev/include
+  ../../deps/rtev/src
   ../../src
   ../../src/modules
 )
@@ -16,12 +17,18 @@ set(COMPONENT_SRCS
   ../../src/js-native.c
   ../../src/js-snapshots.c
   ../../src/js-common.c
-  ../../src/js-threadpool.c
+  ../../src/js-rtev-watcher.c
   ../../src/modules/js-module-console.c
-  ../../src/modules/js-module-gpio.c
   ../../src/modules/js-module-process.c
   ../../src/modules/js-module-require.c
   ../../src/modules/js-module-timer.c
+  ../../deps/rtev/src/allocator.c
+  ../../deps/rtev/src/async.c
+  ../../deps/rtev/src/context.c
+  ../../deps/rtev/src/threadpool.c
+  ../../deps/rtev/src/tick.c
+  ../../deps/rtev/src/timer.c
+  ../../deps/rtev/src/watcher.c
 )
 
 register_component()
@@ -63,32 +70,9 @@ externalproject_add(jerryscript_build
 )
 add_dependencies(${COMPONENT_NAME} jerryscript_build)
 
-externalproject_add(rtev_build
-  PREFIX ${COMPONENT_DIR}
-  SOURCE_DIR ${RTEV_SOURCE}
-  BUILD_IN_SOURCE 0
-  BINARY_DIR rtev
-  INSTALL_COMMAND "" # Do not install to host
-  LIST_SEPARATOR | # Use the alternate list separator
-  CMAKE_ARGS
-    -DCMAKE_SYSTEM_NAME=Generic
-    -DCMAKE_SYSTEM_PROCESSOR=xtensa
-    -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
-    -DEXTERNAL_COMPILE_FLAGS=${EXTERNAL_COMPILE_FLAGS_ALT_SEP}
-    -DCMAKE_EXE_LINKER_FLAGS=${CMAKE_EXE_LINKER_FLAGS}
-    -DCMAKE_LINKER=${CMAKE_LINKER}
-    -DCMAKE_AR=${CMAKE_AR}
-    -DCMAKE_NM=${CMAKE_NM}
-    -DCMAKE_RANLIB=${CMAKE_RANLIB}
-    -DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER
-)
-add_dependencies(${COMPONENT_NAME} rtev)
-
 set(JERRY_BUILD_PATH ${CMAKE_BINARY_DIR}/${COMPONENT_NAME}/jerryscript)
-set(RTEV_BUILD_PATH ${CMAKE_BINARY_DIR}/${COMPONENT_NAME}/rtev)
 
 target_link_libraries(${COMPONENT_NAME}
-                      ${RTEV_BUILD_PATH}/lib/librtev.a
                       ${JERRY_BUILD_PATH}/lib/libjerry-core.a
                       ${JERRY_BUILD_PATH}/lib/libjerry-ext.a
                       ${JERRY_BUILD_PATH}/lib/libjerry-port-default-minimal.a)

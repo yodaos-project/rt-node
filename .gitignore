@@ -1,7 +1,10 @@
 .vscode/
 build/
+build-freertos/
 .idea/
 sdkconfig
+sdkconfig.old
 .DS_Store
 js-snapshots.h
 js-snapshots.c
+*.pyc

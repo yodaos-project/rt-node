@@ -25,7 +25,6 @@ int _rtev_watcher_init(rtev_ctx_t *ctx, rtev_watcher_t *watcher,
   RTEV_ASSERT(watcher != NULL, "watcher is null");
   watcher->ctx= ctx;
   watcher->state = RTEV_STATE_PENDING;
-  watcher->data = NULL;
   watcher->close_cb = close_cb;
   QUEUE_INIT(&watcher->node);
   watcher->type = type;
@@ -109,4 +108,18 @@ void _rtev_close_watchers(rtev_ctx_t *ctx) {
       watcher->close_cb(watcher);
     }
   }
+}
+
+int rtev_watcher_close(rtev_watcher_t *watcher) {
+  switch (watcher->type) {
+  case RTEV_TYPE_TIMER:
+    return rtev_timer_close((rtev_timer_t *) watcher);
+  case RTEV_TYPE_ASYNC:
+    return rtev_async_close((rtev_async_t *) watcher);
+  case RTEV_TYPE_TICK:
+    return rtev_tick_close((rtev_tick_t *) watcher);
+  default:
+    RTEV_ASSERT(0, "unknown watcher type");
+  }
+  return -1;
 }

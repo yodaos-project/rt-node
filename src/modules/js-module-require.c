@@ -39,6 +39,7 @@ static jerry_value_t require_js_module(const char *name) {
 
   js_call_function_void(jfunc, jthis, jargv, jargc, module->code);
 
+  jerry_release_value(jfunc);
   jerry_release_value(jfilename);
   jerry_release_value(jexports);
   jerry_release_value(jthis);

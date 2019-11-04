@@ -1,44 +1,38 @@
 #include "js-module-timer.h"
+#include "js-rtev-watcher.h"
 
-// static const jerry_object_native_info_t this_module_native_info = { NULL };
+static const jerry_object_native_info_t native_info = { NULL };
 
-// static void timeout_handler(uv_timer_t* handle) {
-//   JS_ASSERT(handle != NULL);
+static void on_timeout(rtev_timer_t* timer) {
+  jerry_value_t jobject = JS_RTEV_WATCHER_DATA(timer)->jobject;
+  jerry_value_t jcallback = js_object_get_property(jobject, "handleTimeout");
+  js_call_function_void(jcallback, jobject, NULL, 0, NULL);
+  jerry_release_value(jcallback);
+}
 
-//   jerry_value_t jobject = JS_UV_HANDLE_DATA(handle)->jobject;
-//   jerry_value_t jcallback = js_object_get_property(jobject, "handleTimeout");
-//   js_call_function_void(jcallback, jobject, NULL, 0, NULL);
-//   jerry_release_value(jcallback);
-// }
-
-JS_FUNCTION(timer_start){
-  // JS_DECLARE_PTR(jthis, uv_timer_t, timer_handle);
-
-  // uint64_t timeout = (uint64_t)js_object_to_number(jargv[0]);
-  // uint64_t repeat = (uint64_t)js_object_to_number(jargv[1]);
-  // int res = uv_timer_start(timer_handle, timeout_handler, timeout, repeat);
-  // return jerry_create_number(res);
-  return jerry_create_number(-1);
+JS_FUNCTION(timer_start) {
+  JS_DECLARE_PTR(jthis, rtev_timer_t, timer);
+  uint64_t timeout = (uint64_t) js_object_to_number(jargv[0]);
+  uint64_t repeat = (uint64_t) js_object_to_number(jargv[1]);
+  int r = rtev_timer_start(
+    js_ctx->rtev,
+    timer,
+    timeout,
+    repeat,
+    on_timeout,
+    timer->close_cb);
+  return jerry_create_number(r);
 }
 
 JS_FUNCTION(timer_stop) {
-  // JS_DECLARE_PTR(jthis, uv_handle_t, timer_handle);
-  // if (!uv_is_closing(timer_handle)) {
-  //   js_uv_handle_close(timer_handle, NULL);
-  // }
-
-  return jerry_create_number(0);
+  JS_DECLARE_PTR(jthis, rtev_watcher_t, watcher);
+  int r = js_rtev_watcher_close(watcher);
+  return jerry_create_number(r);
 }
 
 JS_FUNCTION(timer_constructor) {
   JS_ASSERT(jerry_value_is_object(jthis));
-
-  // uv_handle_t* handle = js_uv_handle_create(sizeof(uv_timer_t),
-  //   jthis,
-  //   &this_module_native_info,
-  //   0);
-
-  // uv_timer_init(uv_default_loop(), (uv_timer_t  *)handle);
+  js_rtev_watcher_bind(sizeof(rtev_timer_t), jthis,  &native_info, 0, NULL);
 
   return jerry_create_undefined();
 }

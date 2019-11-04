@@ -2,7 +2,6 @@
 #include "js-module-console.h"
 #include "js-module-require.h"
 #include "js-module-timer.h"
-#include "js-module-gpio.h"
 #include "js-module-process.h"
 
 const js_native_module_t native_modules[] = {
@@ -25,11 +24,6 @@ const js_native_module_t native_modules[] = {
     .type = JS_NATIVE_BINDING,
     .fn.binding = js_init_timer,
     .name = "timers"
-  },
-  { 
-    .type = JS_NATIVE_BUILTIN,
-    .fn.builtin = js_init_gpio,
-    .name = "gpio"
   }
 };
 

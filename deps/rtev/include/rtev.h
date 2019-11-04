@@ -12,11 +12,15 @@
 #include <errno.h>
 #include "queue.h"
 
+#ifdef __FREERTOS__
+#include "freertos/FreeRTOS.h"
+#endif
+
 #define RTEV_ASSERT(exp, reason)                                \
   do {                                                          \
     if (!(exp)) {                                               \
       fprintf(stderr, #exp ", %s\n", reason);                   \
-      abort();                                                  \
+      assert(0);                                                \
     }                                                           \
   } while (0)
 
@@ -107,6 +111,9 @@ struct rtev_tick_t {
 int rtev_ctx_init(rtev_ctx_t *ctx);
 int rtev_ctx_loop(rtev_ctx_t *ctx, rtev_run_type_t type);
 
+// watcher
+int rtev_watcher_close(rtev_watcher_t *watcher);
+
 // memory allocator fn start
 int rtev_set_allocator(void* (*malloc_fn)(size_t), void (*free_fn)(void *));
 void* rtev_malloc(size_t size);
@@ -132,6 +139,7 @@ int rtev_tick_close(rtev_tick_t *tick);
 
 // threadpool fn start
 void rtev_threadpool_post(rtev_threadpool_fn fn, void *data);
+void rtev_threadpool_stop();
 
 // internal fn start
 int _rtev_watcher_init(rtev_ctx_t *ctx, rtev_watcher_t *watcher,
