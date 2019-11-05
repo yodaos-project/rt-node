@@ -26,10 +26,10 @@
 JERRY_STATIC_ASSERT ((int) ECMA_PARSE_STRICT_MODE == (int) PARSER_IS_STRICT,
                      ecma_parse_strict_mode_must_be_equal_to_parser_is_strict);
 
-#if ENABLED (JERRY_ES2015_CLASS)
+#if ENABLED (JERRY_ES2015)
 JERRY_STATIC_ASSERT ((ECMA_PARSE_CLASS_CONSTRUCTOR << PARSER_CLASS_PARSE_OPTS_OFFSET) == PARSER_CLASS_CONSTRUCTOR,
                      ecma_class_parse_options_must_be_able_to_be_shifted_to_ecma_general_flags);
-#endif /* ENABLED (JERRY_ES2015_CLASS) */
+#endif /* ENABLED (JERRY_ES2015) */
 
 /** \addtogroup parser Parser
  * @{
@@ -540,12 +540,12 @@ parse_print_literal (ecma_compiled_code_t *compiled_code_p, /**< compiled code *
     ident_end = args_p->ident_end;
   }
 
-#if ENABLED (JERRY_ES2015_FUNCTION_REST_PARAMETER)
+#if ENABLED (JERRY_ES2015)
   if (compiled_code_p->status_flags & CBC_CODE_FLAGS_REST_PARAMETER)
   {
     argument_end++;
   }
-#endif /* ENABLED (JERRY_ES2015_FUNCTION_REST_PARAMETER) */
+#endif /* ENABLED (JERRY_ES2015) */
 
   if (literal_index < argument_end)
   {
@@ -670,19 +670,17 @@ parse_print_final_cbc (ecma_compiled_code_t *compiled_code_p, /**< compiled code
     JERRY_DEBUG_MSG (",no_lexical_env");
   }
 
-#if ENABLED (JERRY_ES2015_ARROW_FUNCTION)
+#if ENABLED (JERRY_ES2015)
   if (compiled_code_p->status_flags & CBC_CODE_FLAGS_ARROW_FUNCTION)
   {
     JERRY_DEBUG_MSG (",arrow");
   }
-#endif /* ENABLED (JERRY_ES2015_ARROW_FUNCTION) */
 
-#if ENABLED (JERRY_ES2015_CLASS)
   if (compiled_code_p->status_flags & CBC_CODE_FLAGS_CONSTRUCTOR)
   {
     JERRY_DEBUG_MSG (",constructor");
   }
-#endif /* ENABLED (JERRY_ES2015_CLASS) */
+#endif /* ENABLED (JERRY_ES2015) */
 
   JERRY_DEBUG_MSG ("]\n");
 
@@ -991,12 +989,12 @@ parser_post_processing (parser_context_t *context_p) /**< context */
       PARSER_NEXT_BYTE (page_p, offset);
       length++;
 
-#if ENABLED (JERRY_ES2015_CLASS)
+#if ENABLED (JERRY_ES2015)
       if (ext_opcode == CBC_EXT_CONSTRUCTOR_RETURN)
       {
         last_opcode = CBC_RETURN;
       }
-#endif /* ENABLED (JERRY_ES2015_CLASS) */
+#endif /* ENABLED (JERRY_ES2015) */
 
 #if ENABLED (JERRY_LINE_INFO)
       if (ext_opcode == CBC_EXT_LINE)
@@ -1193,13 +1191,13 @@ parser_post_processing (parser_context_t *context_p) /**< context */
   compiled_code_p->refs = 1;
   compiled_code_p->status_flags = CBC_CODE_FLAGS_FUNCTION;
 
-#if ENABLED (JERRY_ES2015_FUNCTION_REST_PARAMETER)
+#if ENABLED (JERRY_ES2015)
   if (context_p->status_flags & PARSER_FUNCTION_HAS_REST_PARAM)
   {
     JERRY_ASSERT (context_p->argument_count > 0);
     context_p->argument_count--;
   }
-#endif /* ENABLED (JERRY_ES2015_FUNCTION_REST_PARAMETER) */
+#endif /* ENABLED (JERRY_ES2015) */
 
   if (needs_uint16_arguments)
   {
@@ -1262,26 +1260,22 @@ parser_post_processing (parser_context_t *context_p) /**< context */
     compiled_code_p->status_flags |= CBC_CODE_FLAGS_LEXICAL_ENV_NOT_NEEDED;
   }
 
-#if ENABLED (JERRY_ES2015_ARROW_FUNCTION)
+#if ENABLED (JERRY_ES2015)
   if (context_p->status_flags & PARSER_IS_ARROW_FUNCTION)
   {
     compiled_code_p->status_flags |= CBC_CODE_FLAGS_ARROW_FUNCTION;
   }
-#endif /* ENABLED (JERRY_ES2015_ARROW_FUNCTION) */
 
-#if ENABLED (JERRY_ES2015_CLASS)
   if (context_p->status_flags & PARSER_CLASS_CONSTRUCTOR)
   {
     compiled_code_p->status_flags |= CBC_CODE_FLAGS_CONSTRUCTOR;
   }
-#endif /* ENABLED (JERRY_ES2015_CLASS) */
 
-#if ENABLED (JERRY_ES2015_FUNCTION_REST_PARAMETER)
   if (context_p->status_flags & PARSER_FUNCTION_HAS_REST_PARAM)
   {
     compiled_code_p->status_flags |= CBC_CODE_FLAGS_REST_PARAMETER;
   }
-#endif /* ENABLED (JERRY_ES2015_FUNCTION_REST_PARAMETER) */
+#endif /* ENABLED (JERRY_ES2015) */
 
   literal_pool_p = ((ecma_value_t *) byte_code_p) - context_p->register_count;
   byte_code_p += literal_length;
@@ -1617,15 +1611,13 @@ static void
 parser_parse_function_arguments (parser_context_t *context_p, /**< context */
                                  lexer_token_type_t end_type) /**< expected end type */
 {
-#if ENABLED (JERRY_ES2015_FUNCTION_PARAMETER_INITIALIZER) || ENABLED (JERRY_ES2015_FUNCTION_REST_PARAMETER)
+#if ENABLED (JERRY_ES2015)
   bool duplicated_argument_names = false;
-#endif /* ENABLED (JERRY_ES2015_FUNCTION_PARAMETER_INITIALIZER) || ENABLED (JERRY_ES2015_FUNCTION_REST_PARAMETER) */
-#if ENABLED (JERRY_ES2015_FUNCTION_PARAMETER_INITIALIZER)
   bool initializer_found = false;
-#endif /* ENABLED (JERRY_ES2015_FUNCTION_PARAMETER_INITIALIZER) */
+#endif /* ENABLED (JERRY_ES2015) */
 
   JERRY_ASSERT (context_p->next_scanner_info_p->type == SCANNER_TYPE_FUNCTION);
-  scanner_create_variables (context_p, sizeof (scanner_function_info_t));
+  scanner_create_variables (context_p, SCANNER_CREATE_VARS_NO_OPTS);
 
   if (context_p->token.type == end_type)
   {
@@ -1634,7 +1626,7 @@ parser_parse_function_arguments (parser_context_t *context_p, /**< context */
 
   while (true)
   {
-#if ENABLED (JERRY_ES2015_FUNCTION_REST_PARAMETER)
+#if ENABLED (JERRY_ES2015)
     if (context_p->status_flags & PARSER_FUNCTION_HAS_REST_PARAM)
     {
       parser_raise_error (context_p, PARSER_ERR_FORMAL_PARAM_AFTER_REST_PARAMETER);
@@ -1650,7 +1642,7 @@ parser_parse_function_arguments (parser_context_t *context_p, /**< context */
 
       context_p->status_flags |= PARSER_FUNCTION_HAS_REST_PARAM;
     }
-#endif /* ENABLED (JERRY_ES2015_FUNCTION_REST_PARAMETER) */
+#endif /* ENABLED (JERRY_ES2015) */
 
     if (context_p->token.type != LEXER_LITERAL
         || context_p->token.lit_location.type != LEXER_IDENT_LITERAL)
@@ -1670,15 +1662,15 @@ parser_parse_function_arguments (parser_context_t *context_p, /**< context */
 
     if (JERRY_UNLIKELY (context_p->lit_object.literal_p->status_flags & LEXER_FLAG_FUNCTION_ARGUMENT))
     {
-#if ENABLED (JERRY_ES2015_FUNCTION_PARAMETER_INITIALIZER)
+#if ENABLED (JERRY_ES2015)
       if (initializer_found)
       {
         parser_raise_error (context_p, PARSER_ERR_DUPLICATED_ARGUMENT_NAMES);
       }
-#endif /* ENABLED (JERRY_ES2015_FUNCTION_PARAMETER_INITIALIZER) */
-#if ENABLED (JERRY_ES2015_FUNCTION_PARAMETER_INITIALIZER) || ENABLED (JERRY_ES2015_FUNCTION_REST_PARAMETER)
+#endif /* ENABLED (JERRY_ES2015) */
+#if ENABLED (JERRY_ES2015)
       duplicated_argument_names = true;
-#endif /* ENABLED (JERRY_ES2015_FUNCTION_PARAMETER_INITIALIZER) || ENABLED (JERRY_ES2015_FUNCTION_REST_PARAMETER) */
+#endif /* ENABLED (JERRY_ES2015) */
 
       context_p->status_flags |= PARSER_HAS_NON_STRICT_ARG;
     }
@@ -1695,15 +1687,13 @@ parser_parse_function_arguments (parser_context_t *context_p, /**< context */
 
     lexer_next_token (context_p);
 
-#if ENABLED (JERRY_ES2015_FUNCTION_PARAMETER_INITIALIZER)
+#if ENABLED (JERRY_ES2015)
     if (context_p->token.type == LEXER_ASSIGN)
     {
-#if ENABLED (JERRY_ES2015_FUNCTION_REST_PARAMETER)
       if (context_p->status_flags & PARSER_FUNCTION_HAS_REST_PARAM)
       {
         parser_raise_error (context_p, PARSER_ERR_REST_PARAMETER_DEFAULT_INITIALIZER);
       }
-#endif /* ENABLED (JERRY_ES2015_FUNCTION_REST_PARAMETER) */
 
       parser_branch_t skip_init;
 
@@ -1723,7 +1713,7 @@ parser_parse_function_arguments (parser_context_t *context_p, /**< context */
 
       parser_set_branch_to_current_position (context_p, &skip_init);
     }
-#endif /* ENABLED (JERRY_ES2015_FUNCTION_PARAMETER_INITIALIZER) */
+#endif /* ENABLED (JERRY_ES2015) */
 
     if (context_p->token.type != LEXER_COMMA)
     {
@@ -1776,18 +1766,9 @@ parser_parse_source (const uint8_t *arg_list_p, /**< function argument list */
     context.status_flags = PARSER_IS_FUNCTION;
   }
 
-#if ENABLED (JERRY_ES2015_MODULE_SYSTEM)
-  if (parse_opts & ECMA_PARSE_EVAL)
-  {
-    context.status_flags |= PARSER_IS_EVAL;
-  }
-
-  context.module_current_node_p = NULL;
-#endif /* ENABLED (JERRY_ES2015_MODULE_SYSTEM) */
-
-#if ENABLED (JERRY_ES2015_CLASS)
+#if ENABLED (JERRY_ES2015)
   context.status_flags |= PARSER_GET_CLASS_PARSER_OPTS (parse_opts);
-#endif /* ENABLED (JERRY_ES2015_CLASS) */
+#endif /* ENABLED (JERRY_ES2015) */
 
   context.stack_depth = 0;
   context.stack_limit = 0;
@@ -1823,6 +1804,9 @@ parser_parse_source (const uint8_t *arg_list_p, /**< function argument list */
   context.scope_stack_size = 0;
   context.scope_stack_top = 0;
   context.scope_stack_reg_top = 0;
+#if ENABLED (JERRY_ES2015)
+  context.scope_stack_global_end = 0;
+#endif /* ENABLED (JERRY_ES2015) */
 
 #ifndef JERRY_NDEBUG
   context.context_stack_depth = 0;
@@ -1839,6 +1823,13 @@ parser_parse_source (const uint8_t *arg_list_p, /**< function argument list */
                                           : "Function");
   }
 #endif /* ENABLED (JERRY_PARSER_DUMP_BYTE_CODE) */
+
+#if ENABLED (JERRY_ES2015)
+  if (parse_opts & ECMA_PARSE_DIRECT_EVAL)
+  {
+    context.status_flags |= PARSER_IS_EVAL;
+  }
+#endif /* ENABLED (JERRY_ES2015) */
 
   scanner_scan_all (&context,
                     arg_list_p,
@@ -1873,12 +1864,28 @@ parser_parse_source (const uint8_t *arg_list_p, /**< function argument list */
   context.u.allocated_buffer_p = NULL;
   context.line = 1;
   context.column = 1;
+  context.token.flags = 0;
 
   parser_stack_init (&context);
 
 #if ENABLED (JERRY_DEBUGGER)
   context.breakpoint_info_count = 0;
 #endif /* ENABLED (JERRY_DEBUGGER) */
+
+#if ENABLED (JERRY_ES2015_MODULE_SYSTEM)
+  if (context.status_flags & PARSER_IS_MODULE)
+  {
+    context.status_flags |= PARSER_IS_STRICT;
+  }
+
+  if (parse_opts & ECMA_PARSE_EVAL)
+  {
+    /* After this point this flag is set for non-direct evals as well. */
+    context.status_flags |= PARSER_IS_EVAL;
+  }
+
+  context.module_current_node_p = NULL;
+#endif /* ENABLED (JERRY_ES2015_MODULE_SYSTEM) */
 
   PARSER_TRY (context.try_buffer)
   {
@@ -1904,13 +1911,51 @@ parser_parse_source (const uint8_t *arg_list_p, /**< function argument list */
 
       lexer_next_token (&context);
     }
+#if ENABLED (JERRY_ES2015_MODULE_SYSTEM)
+    else if (parse_opts & ECMA_PARSE_MODULE)
+    {
+      scanner_create_variables (&context, SCANNER_CREATE_VARS_NO_OPTS);
+    }
+#endif /* ENABLED (JERRY_ES2015_MODULE_SYSTEM) */
     else
     {
-      JERRY_ASSERT (context.next_scanner_info_p->type == SCANNER_TYPE_FUNCTION);
-      scanner_create_variables (&context, sizeof (scanner_function_info_t));
+      JERRY_ASSERT (context.next_scanner_info_p->source_p == source_p
+                    && context.next_scanner_info_p->type == SCANNER_TYPE_FUNCTION);
+
+#if ENABLED (JERRY_ES2015)
+      if (scanner_is_global_context_needed (&context))
+      {
+        parser_branch_t branch;
+
+#ifndef JERRY_NDEBUG
+        PARSER_PLUS_EQUAL_U16 (context.context_stack_depth, PARSER_BLOCK_CONTEXT_STACK_ALLOCATION);
+#endif /* !JERRY_NDEBUG */
+
+        parser_emit_cbc_forward_branch (&context,
+                                        CBC_BLOCK_CREATE_CONTEXT,
+                                        &branch);
+
+        parser_stack_push (&context, &branch, sizeof (parser_branch_t));
+        context.status_flags |= PARSER_INSIDE_BLOCK;
+      }
+#endif /* ENABLED (JERRY_ES2015) */
+
+      scanner_create_variables (&context, SCANNER_CREATE_VARS_IS_EVAL);
     }
 
     parser_parse_statements (&context);
+
+#if ENABLED (JERRY_ES2015)
+    if (context.status_flags & PARSER_INSIDE_BLOCK)
+    {
+      parser_branch_t branch;
+      parser_stack_pop (&context, &branch, sizeof (parser_branch_t));
+
+      parser_emit_cbc (&context, CBC_CONTEXT_END);
+      parser_set_branch_to_current_position (&context, &branch);
+      parser_flush_cbc (&context);
+    }
+#endif /* ENABLED (JERRY_ES2015) */
 
     /* When the parsing is successful, only the
      * dummy value can be remained on the stack. */
@@ -2032,6 +2077,9 @@ parser_save_context (parser_context_t *context_p, /**< context */
   saved_context_p->scope_stack_size = context_p->scope_stack_size;
   saved_context_p->scope_stack_top = context_p->scope_stack_top;
   saved_context_p->scope_stack_reg_top = context_p->scope_stack_reg_top;
+#if ENABLED (JERRY_ES2015)
+  saved_context_p->scope_stack_global_end = context_p->scope_stack_global_end;
+#endif /* ENABLED (JERRY_ES2015) */
 
 #ifndef JERRY_NDEBUG
   saved_context_p->context_stack_depth = context_p->context_stack_depth;
@@ -2056,6 +2104,9 @@ parser_save_context (parser_context_t *context_p, /**< context */
   context_p->scope_stack_size = 0;
   context_p->scope_stack_top = 0;
   context_p->scope_stack_reg_top = 0;
+#if ENABLED (JERRY_ES2015)
+  context_p->scope_stack_global_end = 0;
+#endif /* ENABLED (JERRY_ES2015) */
 
 #ifndef JERRY_NDEBUG
   context_p->context_stack_depth = 0;
@@ -2097,6 +2148,9 @@ parser_restore_context (parser_context_t *context_p, /**< context */
   context_p->scope_stack_size = saved_context_p->scope_stack_size;
   context_p->scope_stack_top = saved_context_p->scope_stack_top;
   context_p->scope_stack_reg_top = saved_context_p->scope_stack_reg_top;
+#if ENABLED (JERRY_ES2015)
+  context_p->scope_stack_global_end = saved_context_p->scope_stack_global_end;
+#endif /* ENABLED (JERRY_ES2015) */
 
 #ifndef JERRY_NDEBUG
   context_p->context_stack_depth = saved_context_p->context_stack_depth;
@@ -2122,13 +2176,13 @@ parser_parse_function (parser_context_t *context_p, /**< context */
 #if ENABLED (JERRY_PARSER_DUMP_BYTE_CODE)
   if (context_p->is_show_opcodes)
   {
-#if ENABLED (JERRY_ES2015_CLASS)
+#if ENABLED (JERRY_ES2015)
     JERRY_DEBUG_MSG ("\n--- %s parsing start ---\n\n",
                      (context_p->status_flags & PARSER_CLASS_CONSTRUCTOR) ? "Class constructor"
                                                                           : "Function");
-#else /* !ENABLED (JERRY_ES2015_CLASS) */
+#else /* !ENABLED (JERRY_ES2015) */
     JERRY_DEBUG_MSG ("\n--- Function parsing start ---\n\n");
-#endif /* ENABLED (JERRY_ES2015_CLASS) */
+#endif /* ENABLED (JERRY_ES2015) */
   }
 #endif /* ENABLED (JERRY_PARSER_DUMP_BYTE_CODE) */
 
@@ -2178,25 +2232,25 @@ parser_parse_function (parser_context_t *context_p, /**< context */
 
   lexer_next_token (context_p);
 
-#if ENABLED (JERRY_ES2015_CLASS)
+#if ENABLED (JERRY_ES2015)
   if ((context_p->status_flags & PARSER_CLASS_CONSTRUCTOR_SUPER) == PARSER_CLASS_CONSTRUCTOR_SUPER)
   {
     context_p->status_flags |= PARSER_LEXICAL_ENV_NEEDED;
   }
-#endif /* ENABLED (JERRY_ES2015_CLASS) */
+#endif /* ENABLED (JERRY_ES2015) */
   parser_parse_statements (context_p);
   compiled_code_p = parser_post_processing (context_p);
 
 #if ENABLED (JERRY_PARSER_DUMP_BYTE_CODE)
   if (context_p->is_show_opcodes)
   {
-#if ENABLED (JERRY_ES2015_CLASS)
+#if ENABLED (JERRY_ES2015)
     JERRY_DEBUG_MSG ("\n--- %s parsing end ---\n\n",
                      (context_p->status_flags & PARSER_CLASS_CONSTRUCTOR) ? "Class constructor"
                                                                           : "Function");
-#else /* !ENABLED (JERRY_ES2015_CLASS) */
+#else /* !ENABLED (JERRY_ES2015) */
     JERRY_DEBUG_MSG ("\n--- Function parsing end ---\n\n");
-#endif /* ENABLED (JERRY_ES2015_CLASS) */
+#endif /* ENABLED (JERRY_ES2015) */
   }
 #endif /* ENABLED (JERRY_PARSER_DUMP_BYTE_CODE) */
 
@@ -2205,7 +2259,7 @@ parser_parse_function (parser_context_t *context_p, /**< context */
   return compiled_code_p;
 } /* parser_parse_function */
 
-#if ENABLED (JERRY_ES2015_ARROW_FUNCTION)
+#if ENABLED (JERRY_ES2015)
 
 /**
  * Parse arrow function code
@@ -2223,9 +2277,9 @@ parser_parse_arrow_function (parser_context_t *context_p, /**< context */
                  && (status_flags & PARSER_IS_ARROW_FUNCTION));
   parser_save_context (context_p, &saved_context);
   context_p->status_flags |= status_flags;
-#if ENABLED (JERRY_ES2015_CLASS)
+#if ENABLED (JERRY_ES2015)
   context_p->status_flags |= saved_context.status_flags & PARSER_CLASS_HAS_SUPER;
-#endif /* ENABLED (JERRY_ES2015_CLASS) */
+#endif /* ENABLED (JERRY_ES2015) */
 
 #if ENABLED (JERRY_PARSER_DUMP_BYTE_CODE)
   if (context_p->is_show_opcodes)
@@ -2301,7 +2355,7 @@ parser_parse_arrow_function (parser_context_t *context_p, /**< context */
   return compiled_code_p;
 } /* parser_parse_arrow_function */
 
-#endif /* ENABLED (JERRY_ES2015_ARROW_FUNCTION) */
+#endif /* ENABLED (JERRY_ES2015) */
 
 /**
  * Raise a parse error.

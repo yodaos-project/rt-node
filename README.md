@@ -20,7 +20,7 @@ In order to be compatible with different embed JavaScript engines, N-API will be
 
 ## Example
 
-JavaScript sources is packaged in `src/js-snapshots.c/h`. Use `sh tools/js2c.sh` to package JavaScript Sources if the sources is changed.
+JavaScript sources are packaged in `src/js-snapshots.c/h`. Use `sh tools/js2c.sh` to package JavaScript Sources if the sources is changed.
 
 `src/js/app.js` is the entry of JavaScript, here is an example:
 

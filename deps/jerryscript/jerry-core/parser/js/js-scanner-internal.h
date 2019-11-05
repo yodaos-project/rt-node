@@ -35,17 +35,41 @@ typedef struct
 } scanner_source_start_t;
 
 /**
+ * Descriptor for storing a let/const literal on stack.
+ */
+typedef struct
+{
+  lexer_lit_location_t *literal_p; /**< let/const literal */
+} scanner_let_const_literal_t;
+
+/**
  * Flags for type member of lexer_lit_location_t structure in the literal pool.
  */
 typedef enum
 {
   SCANNER_LITERAL_IS_ARG = (1 << 0), /**< literal is argument */
-  SCANNER_LITERAL_IS_LOCAL = (1 << 1), /**< literal is local (similar to let,
-                                        *   but var is allowed with the same identifier) */
-  SCANNER_LITERAL_IS_VAR = (1 << 2), /**< literal is var */
-  SCANNER_LITERAL_IS_FUNC = (1 << 3), /**< literal is function */
-  SCANNER_LITERAL_NO_REG = (1 << 4), /**< literal cannot be stored in register */
+  SCANNER_LITERAL_IS_VAR = (1 << 1), /**< literal is var */
+  SCANNER_LITERAL_IS_FUNC = (1 << 2), /**< literal is function */
+  SCANNER_LITERAL_NO_REG = (1 << 3), /**< literal cannot be stored in register */
+  SCANNER_LITERAL_IS_LET = (1 << 4), /**< literal is let */
+  SCANNER_LITERAL_IS_CONST = (1 << 5), /**< literal is const */
+#if ENABLED (JERRY_ES2015)
+  SCANNER_LITERAL_IS_USED = (1 << 6), /**< literal is used */
+#endif /* ENABLED (JERRY_ES2015) */
 } scanner_literal_type_flags_t;
+
+/*
+ * Known combinations:
+ *
+ *  SCANNER_LITERAL_IS_FUNC | SCANNER_LITERAL_IS_LET : function declared in this block, might be let or var
+ *  SCANNER_LITERAL_IS_FUNC | SCANNER_LITERAL_IS_CONST : function declared in this block, must be let
+ *  SCANNER_LITERAL_IS_LET | SCANNER_LITERAL_IS_CONST : module import on global scope, catch block variable otherwise
+ */
+
+/**
+ * Literal is a local declration (let, const, catch variable, etc.)
+ */
+#define SCANNER_LITERAL_IS_LOCAL (SCANNER_LITERAL_IS_LET | SCANNER_LITERAL_IS_CONST)
 
 /**
  * For statement descriptor.
@@ -76,8 +100,14 @@ typedef enum
   SCANNER_LITERAL_POOL_FUNCTION = (1 << 0), /**< literal pool represents a function */
   SCANNER_LITERAL_POOL_BLOCK = (1 << 1), /**< literal pool represents a code block */
   SCANNER_LITERAL_POOL_NO_REG = (1 << 2), /**< variable declarations cannot be kept in registers */
-  SCANNER_LITERAL_POOL_NO_ARGUMENTS = (1 << 3), /**< arguments object should not be constructed */
-  SCANNER_LITERAL_POOL_IN_WITH = (1 << 4), /**< literal pool is in a with statement */
+#if ENABLED (JERRY_ES2015)
+  SCANNER_LITERAL_POOL_NO_VAR_REG = (1 << 3), /**< non let/const declarations cannot be kept in registers */
+#endif /* ENABLED (JERRY_ES2015) */
+  SCANNER_LITERAL_POOL_NO_ARGUMENTS = (1 << 4), /**< arguments object should not be constructed */
+  SCANNER_LITERAL_POOL_IN_WITH = (1 << 5), /**< literal pool is in a with statement */
+#if ENABLED (JERRY_ES2015_MODULE_SYSTEM)
+  SCANNER_LITERAL_POOL_IN_EXPORT = (1 << 6), /**< the declared variables are exported by the module system */
+#endif /* ENABLED (JERRY_ES2015_MODULE_SYSTEM) */
 } scanner_literal_pool_flags_t;
 
 /**
@@ -112,6 +142,14 @@ struct scanner_context_t
   scanner_info_t *end_arguments_p; /**< position of end arguments */
 };
 
+void scanner_raise_error (parser_context_t *context_p);
+#if ENABLED (JERRY_ES2015)
+void scanner_raise_redeclaration_error (parser_context_t *context_p);
+#endif /* ENABLED (JERRY_ES2015) */
+
+void *scanner_malloc (parser_context_t *context_p, size_t size);
+void scanner_free (void *ptr, size_t size);
+
 size_t scanner_get_stream_size (scanner_info_t *info_p, size_t size);
 scanner_info_t *scanner_insert_info (parser_context_t *context_p, const uint8_t *source_p, size_t size);
 scanner_info_t *scanner_insert_info_before (parser_context_t *context_p, const uint8_t *source_p,
@@ -119,13 +157,23 @@ scanner_info_t *scanner_insert_info_before (parser_context_t *context_p, const u
 scanner_literal_pool_t *scanner_push_literal_pool (parser_context_t *context_p, scanner_context_t *scanner_context_p,
                                                    uint16_t status_flags);
 void scanner_pop_literal_pool (parser_context_t *context_p, scanner_context_t *scanner_context_p);
+#if ENABLED (JERRY_ES2015)
+void scanner_construct_global_block (parser_context_t *context_p, scanner_context_t *scanner_context_p);
+#endif /* ENABLED (JERRY_ES2015) */
 void scanner_filter_arguments (parser_context_t *context_p, scanner_context_t *scanner_context_p);
 lexer_lit_location_t *scanner_add_custom_literal (parser_context_t *context_p, scanner_literal_pool_t *literal_pool_p,
                                                   const lexer_lit_location_t *literal_location_p);
 lexer_lit_location_t *scanner_add_literal (parser_context_t *context_p, scanner_context_t *scanner_context_p);
 void scanner_add_reference (parser_context_t *context_p, scanner_context_t *scanner_context_p);
 void scanner_append_argument (parser_context_t *context_p, scanner_context_t *scanner_context_p);
+#if ENABLED (JERRY_ES2015)
+bool scanner_scope_find_let_declaration (parser_context_t *context_p, lexer_lit_location_t *literal_p);
+void scanner_detect_invalid_var (parser_context_t *context_p, scanner_context_t *scanner_context_p,
+                                 lexer_lit_location_t *var_literal_p);
+void scanner_detect_invalid_let (parser_context_t *context_p, lexer_lit_location_t *let_literal_p);
+#endif /* ENABLED (JERRY_ES2015) */
 void scanner_detect_eval_call (parser_context_t *context_p, scanner_context_t *scanner_context_p);
+
 
 /**
  * @}
