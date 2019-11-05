@@ -73,4 +73,4 @@ $ sh tools/esp_flash.sh -p $device_port
 
 ## LICENSE
 
-[Apache-2.0](LICENSE.md)
+[Apache-2.0](./LICENSE.md)
