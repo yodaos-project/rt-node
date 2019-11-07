@@ -1,6 +1,6 @@
-#include "js-main.h"
+#include "rt_node.h"
 
 int main(int argc ,char **argv) {
-  js_main();
+  rtnode_start();
   return 0;
 }

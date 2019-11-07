@@ -1,10 +1,11 @@
 #include <stdio.h>
 #include <string.h>
-#include "js-main.h"
+#include "js-common.h"
 #include "js-modules.h"
+#include "node_api.h"
 
-int js_main() {
-  LOG_INFO("#####  jsruntime start 🐒 #####");
+int rtnode_start() {
+  LOG_INFO("#####  rtnode start 🐒 #####");
   srand((unsigned)jerry_port_get_current_time());
 
   js_ctx = (js_context_t *) js_malloc(sizeof(js_context_t));
@@ -41,7 +42,7 @@ int js_main() {
     uint64_t alloc_count = js_get_memory_alloc_count();
     LOG_WARN("memory leak, left: %ld, count: %ld", mem_left, alloc_count);
   }
-  LOG_INFO("#####  jsruntime end 🙈 #####");
+  LOG_INFO("#####  rtnode end 🙈 #####");
 
   return 0;
 }

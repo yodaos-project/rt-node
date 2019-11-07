@@ -1,8 +1,6 @@
 #ifndef _JS_MAIN_H_
 #define _JS_MAIN_H_
 
-#include "js-common.h"
-
-int js_main();
+int rtnode_start();
 
 #endif //_JS_MAIN_H_

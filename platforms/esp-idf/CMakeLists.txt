@@ -6,13 +6,14 @@ set(COMPONENT_ADD_INCLUDEDIRS
   ../../deps/rtev/src
   ../../src
   ../../src/modules
+  ../../include
 )
 set(COMPONENT_SRCS
   main.c
   ../../src/js-binding.c
   ../../src/js-error.c
   ../../src/js-logger.c
-  ../../src/js-main.c
+        ../../src/js-main.c
   ../../src/js-modules.c
   ../../src/js-native.c
   ../../src/js-snapshots.c

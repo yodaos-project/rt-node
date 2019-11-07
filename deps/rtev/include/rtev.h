@@ -139,7 +139,6 @@ int rtev_tick_close(rtev_tick_t *tick);
 
 // threadpool fn start
 void rtev_threadpool_post(rtev_threadpool_fn fn, void *data);
-void rtev_threadpool_stop();
 
 // internal fn start
 int _rtev_watcher_init(rtev_ctx_t *ctx, rtev_watcher_t *watcher,
@@ -151,6 +150,7 @@ void _rtev_close_watchers(rtev_ctx_t *ctx);
 void _rtev_set_next_timeout(rtev_ctx_t *ctx, struct timespec *spec);
 void _rtev_update_time(rtev_ctx_t *ctx);
 void _rtev_threadpool_init();
+void _rtev_threadpool_stop();
 void _rtev_run_async(rtev_ctx_t *ctx);
 void _rtev_run_timers(rtev_ctx_t *ctx);
 void _rtev_run_ticks(rtev_ctx_t *ctx);

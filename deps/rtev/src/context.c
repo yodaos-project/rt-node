@@ -63,6 +63,6 @@ int rtev_ctx_loop(rtev_ctx_t *ctx, rtev_run_type_t type) {
 
 #undef RTEV_CHECK_LINK
 #undef RTEV_CHECK_QUEUE
-  rtev_threadpool_stop();
+  _rtev_threadpool_stop();
   return 0;
 }

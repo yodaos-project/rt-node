@@ -11,6 +11,7 @@ include_directories(
   deps/jerryscript/jerry-port/default/include
   deps/rtev/include
   deps/rtev/src
+  include
   src
   src/modules
 )

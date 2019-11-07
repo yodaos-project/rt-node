@@ -91,7 +91,7 @@ void rtev_threadpool_post(rtev_threadpool_fn fn, void *data) {
   pthread_mutex_unlock(&task_lock);
 }
 
-void rtev_threadpool_stop() {
+void _rtev_threadpool_stop() {
   pthread_mutex_lock(&task_lock);
   task_state = STOPPED;
   pthread_cond_signal(&task_cond);

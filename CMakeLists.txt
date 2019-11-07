@@ -9,9 +9,9 @@ set(JERRYSCRIPT_SOURCE "${CMAKE_SOURCE_DIR}/deps/jerryscript")
 set(RTEV_SOURCE "${CMAKE_SOURCE_DIR}/deps/rtev")
 
 # Jerryscript setting here
-set(JERRY_GLOBAL_HEAP_SIZE "(256)")
+set(JERRY_GLOBAL_HEAP_SIZE "(128)")
 
-if("${PLATFORM}" STREQUAL "freertos")
+if("${PLATFORM}" STREQUAL "espidf")
   set(EXTRA_COMPONENT_DIRS platforms/esp-idf)
   include($ENV{IDF_PATH}/tools/cmake/project.cmake)
   project(rt-node)

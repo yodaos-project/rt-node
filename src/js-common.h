@@ -41,7 +41,9 @@
                             const jerry_value_t jargv[], \
                             const jerry_length_t jargc)
 
-#define JS_VM_HEAP_SIZE 512 * 1024
+#ifndef JS_VM_HEAP_SIZE
+#define JS_VM_HEAP_SIZE 128 * 1024
+#endif
 
 #define JS_BACKTRACE_DEPTH 11
 
