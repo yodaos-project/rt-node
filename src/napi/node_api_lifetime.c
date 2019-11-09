@@ -14,13 +14,15 @@
  */
 
 #include "jerryscript-ext/handle-scope.h"
+#include <stdlib.h>
 #include "internal/node_api_internal.h"
 
-static void native_info_free(void* native_info) {
-  iotjs_object_info_t* info = (iotjs_object_info_t*)native_info;
-  iotjs_reference_t* comp = info->ref_start;
+RTNODE_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(object_info);
+
+static void rtnode_object_info_destroy(rtnode_object_info_t* info) {
+  rtnode_reference_t* comp = info->ref_start;
   while (comp != NULL) {
-    comp->jval = AS_JERRY_VALUE(NULL);
+    comp->jval = jerry_create_undefined();
     comp = comp->next;
   }
 
@@ -28,46 +30,40 @@ static void native_info_free(void* native_info) {
     info->finalize_cb(info->env, info->native_object, info->finalize_hint);
   }
 
-  free(info);
+  rtnode_free(info);
 }
-
-static const jerry_object_native_info_t native_obj_type_info = {
-  .free_cb = native_info_free
-};
 
 inline napi_status jerryx_status_to_napi_status(
     jerryx_handle_scope_status status) {
   switch (status) {
     case jerryx_handle_scope_mismatch:
-      NAPI_RETURN(napi_handle_scope_mismatch, NULL);
+      NAPI_RETURN(napi_handle_scope_mismatch);
     case jerryx_escape_called_twice:
-      NAPI_RETURN(napi_escape_called_twice, NULL);
+      NAPI_RETURN(napi_escape_called_twice);
     default:
       NAPI_RETURN(napi_ok);
   }
 }
 
-iotjs_object_info_t* iotjs_get_object_native_info(jerry_value_t jval,
+rtnode_object_info_t* rtnode_get_object_native_info(jerry_value_t jval,
                                                   size_t native_info_size) {
-  iotjs_object_info_t* info;
-  bool has_native_ptr =
-      jerry_get_object_native_pointer(jval, (void**)&info, NULL);
-  if (!has_native_ptr) {
-    info = (iotjs_object_info_t*)iotjs_buffer_allocate(
-        native_info_size < sizeof(iotjs_object_info_t)
-            ? sizeof(iotjs_object_info_t)
-            : native_info_size);
-    jerry_set_object_native_pointer(jval, info, &native_obj_type_info);
+  void* info;
+  if (!jerry_get_object_native_pointer(jval, &info, &this_module_native_info)) {
+    info = rtnode_malloc(native_info_size);
+    jerry_set_object_native_pointer(jval, info, &this_module_native_info);
   }
 
-  return info;
+  return (rtnode_object_info_t*)info;
 }
 
-iotjs_object_info_t* iotjs_try_get_object_native_info(jerry_value_t jval,
+rtnode_object_info_t* rtnode_try_get_object_native_info(jerry_value_t jval,
                                                       size_t native_info_size) {
-  iotjs_object_info_t* info = NULL;
-  jerry_get_object_native_pointer(jval, (void**)&info, NULL);
-  return info;
+  void* info = NULL;
+  if (jerry_get_object_native_pointer(jval, &info, &this_module_native_info)) {
+    return (rtnode_object_info_t*)info;
+  }
+
+  return NULL;
 }
 
 napi_status napi_open_handle_scope(napi_env env, napi_handle_scope* result) {
@@ -129,9 +125,10 @@ napi_status napi_create_reference(napi_env env, napi_value value,
   NAPI_WEAK_ASSERT(napi_invalid_arg, result != NULL);
 
   jerry_value_t jval = AS_JERRY_VALUE(value);
-  iotjs_object_info_t* info = NAPI_GET_OBJECT_INFO(jval);
+  rtnode_object_info_t* info =
+      rtnode_get_object_native_info(jval, sizeof(rtnode_object_info_t));
 
-  iotjs_reference_t* ref = IOTJS_ALLOC(iotjs_reference_t);
+  rtnode_reference_t* ref = rtnode_malloc(sizeof(rtnode_reference_t));
   ref->refcount = initial_refcount;
   ref->jval = AS_JERRY_VALUE(value);
   ref->next = NULL;
@@ -157,15 +154,16 @@ napi_status napi_create_reference(napi_env env, napi_value value,
 
 napi_status napi_delete_reference(napi_env env, napi_ref ref) {
   NAPI_TRY_ENV(env);
-  iotjs_reference_t* iotjs_ref = (iotjs_reference_t*)ref;
-  if (iotjs_ref->jval != AS_JERRY_VALUE(NULL)) {
-    jerry_value_t jval = iotjs_ref->jval;
-    iotjs_object_info_t* info = NAPI_GET_OBJECT_INFO(jval);
+  rtnode_reference_t* rtnode_ref = (rtnode_reference_t*)ref;
+  if (jerry_value_is_object(rtnode_ref->jval)) {
+    jerry_value_t jval = rtnode_ref->jval;
+    rtnode_object_info_t* info =
+        rtnode_get_object_native_info(jval, sizeof(rtnode_object_info_t));
 
     bool found = false;
-    iotjs_reference_t* comp = info->ref_start;
+    rtnode_reference_t* comp = info->ref_start;
     while (comp != NULL) {
-      if (comp == iotjs_ref) {
+      if (comp == rtnode_ref) {
         found = true;
         break;
       }
@@ -173,57 +171,56 @@ napi_status napi_delete_reference(napi_env env, napi_ref ref) {
     }
 
     NAPI_WEAK_ASSERT(napi_invalid_arg, found);
-    if (info->ref_start == iotjs_ref) {
-      info->ref_start = iotjs_ref->next;
+    if (info->ref_start == rtnode_ref) {
+      info->ref_start = rtnode_ref->next;
     }
-    if (info->ref_end == iotjs_ref) {
-      info->ref_end = iotjs_ref->prev;
+    if (info->ref_end == rtnode_ref) {
+      info->ref_end = rtnode_ref->prev;
     }
-    if (iotjs_ref->prev != NULL) {
-      iotjs_ref->prev->next = iotjs_ref->next;
+    if (rtnode_ref->prev != NULL) {
+      rtnode_ref->prev->next = rtnode_ref->next;
     }
-    if (iotjs_ref->next != NULL) {
-      iotjs_ref->next->prev = iotjs_ref->prev;
+    if (rtnode_ref->next != NULL) {
+      rtnode_ref->next->prev = rtnode_ref->prev;
     }
   }
 
-  for (uint32_t i = 0; i < iotjs_ref->refcount; ++i) {
-    jerry_release_value(iotjs_ref->jval);
+  for (uint32_t i = 0; i < rtnode_ref->refcount; ++i) {
+    jerry_release_value(rtnode_ref->jval);
   }
-  free(iotjs_ref);
+  rtnode_free(rtnode_ref);
   NAPI_RETURN(napi_ok);
 }
 
 napi_status napi_reference_ref(napi_env env, napi_ref ref, uint32_t* result) {
   NAPI_TRY_ENV(env);
-  iotjs_reference_t* iotjs_ref = (iotjs_reference_t*)ref;
-  NAPI_WEAK_ASSERT(napi_invalid_arg, (iotjs_ref->jval != AS_JERRY_VALUE(NULL)));
+  rtnode_reference_t* rtnode_ref = (rtnode_reference_t*)ref;
+  NAPI_WEAK_ASSERT(napi_invalid_arg, jerry_value_is_object(rtnode_ref->jval));
 
-  jerry_acquire_value(iotjs_ref->jval);
-  iotjs_ref->refcount += 1;
+  jerry_acquire_value(rtnode_ref->jval);
+  rtnode_ref->refcount += 1;
 
-  NAPI_ASSIGN(result, iotjs_ref->refcount);
+  NAPI_ASSIGN(result, rtnode_ref->refcount);
   NAPI_RETURN(napi_ok);
 }
 
 napi_status napi_reference_unref(napi_env env, napi_ref ref, uint32_t* result) {
   NAPI_TRY_ENV(env);
-  iotjs_reference_t* iotjs_ref = (iotjs_reference_t*)ref;
-  NAPI_WEAK_ASSERT(napi_invalid_arg, (iotjs_ref->refcount > 0));
+  rtnode_reference_t* rtnode_ref = (rtnode_reference_t*)ref;
+  NAPI_WEAK_ASSERT(napi_invalid_arg, (rtnode_ref->refcount > 0));
 
-  jerry_release_value(iotjs_ref->jval);
-  iotjs_ref->refcount -= 1;
+  jerry_release_value(rtnode_ref->jval);
+  rtnode_ref->refcount -= 1;
 
-  NAPI_ASSIGN(result, iotjs_ref->refcount);
+  NAPI_ASSIGN(result, rtnode_ref->refcount);
   NAPI_RETURN(napi_ok);
 }
 
 napi_status napi_get_reference_value(napi_env env, napi_ref ref,
                                      napi_value* result) {
   NAPI_TRY_ENV(env);
-  iotjs_reference_t* iotjs_ref = (iotjs_reference_t*)ref;
-  NAPI_ASSIGN(result, AS_NAPI_VALUE(iotjs_ref->jval));
-  NAPI_RETURN(napi_ok);
+  rtnode_reference_t* rtnode_ref = (rtnode_reference_t*)ref;
+  return napi_assign_nvalue(rtnode_ref->jval, result);
 }
 
 napi_status napi_open_callback_scope(napi_env env, napi_value resource_object,
@@ -241,9 +238,9 @@ napi_status napi_close_callback_scope(napi_env env, napi_callback_scope scope) {
 napi_status napi_add_env_cleanup_hook(napi_env env, void (*fun)(void* arg),
                                       void* arg) {
   NAPI_TRY_ENV(env);
-  iotjs_napi_env_t* curr_env = (iotjs_napi_env_t*)env;
-  iotjs_cleanup_hook_t* memo = NULL;
-  iotjs_cleanup_hook_t* hook = curr_env->cleanup_hook;
+  rtnode_napi_env_t* curr_env = (rtnode_napi_env_t*)env;
+  rtnode_cleanup_hook_t* memo = NULL;
+  rtnode_cleanup_hook_t* hook = curr_env->cleanup_hook;
 
   while (hook != NULL) {
     if (fun == hook->fn) {
@@ -253,7 +250,7 @@ napi_status napi_add_env_cleanup_hook(napi_env env, void (*fun)(void* arg),
     hook = hook->next;
   }
 
-  iotjs_cleanup_hook_t* new_hook = IOTJS_ALLOC(iotjs_cleanup_hook_t);
+  rtnode_cleanup_hook_t* new_hook = rtnode_malloc(sizeof(rtnode_cleanup_hook_t));
   new_hook->fn = fun;
   new_hook->arg = arg;
   new_hook->next = NULL;
@@ -270,9 +267,9 @@ napi_status napi_add_env_cleanup_hook(napi_env env, void (*fun)(void* arg),
 napi_status napi_remove_env_cleanup_hook(napi_env env, void (*fun)(void* arg),
                                          void* arg) {
   NAPI_TRY_ENV(env);
-  iotjs_napi_env_t* curr_env = (iotjs_napi_env_t*)env;
-  iotjs_cleanup_hook_t* memo = NULL;
-  iotjs_cleanup_hook_t* hook = curr_env->cleanup_hook;
+  rtnode_napi_env_t* curr_env = (rtnode_napi_env_t*)env;
+  rtnode_cleanup_hook_t* memo = NULL;
+  rtnode_cleanup_hook_t* hook = curr_env->cleanup_hook;
   bool found = false;
   while (hook != NULL) {
     if (fun == hook->fn && arg == hook->arg) {
@@ -289,22 +286,22 @@ napi_status napi_remove_env_cleanup_hook(napi_env env, void (*fun)(void* arg),
   } else {
     memo->next = hook->next;
   }
-  free(hook);
+  rtnode_free(hook);
   NAPI_RETURN(napi_ok);
 }
 
-void iotjs_setup_napi() {
-  iotjs_napi_env_t* env = (iotjs_napi_env_t*)iotjs_get_current_napi_env();
-  env->main_thread = uv_thread_self();
+void rtnode_setup_napi() {
+  rtnode_napi_env_t* env = (rtnode_napi_env_t*)rtnode_get_current_napi_env();
+  env->main_thread = pthread_self();
 }
 
-void iotjs_cleanup_napi() {
-  iotjs_napi_env_t* env = (iotjs_napi_env_t*)iotjs_get_current_napi_env();
-  iotjs_cleanup_hook_t* hook = env->cleanup_hook;
+void rtnode_cleanup_napi() {
+  rtnode_napi_env_t* env = (rtnode_napi_env_t*)rtnode_get_current_napi_env();
+  rtnode_cleanup_hook_t* hook = env->cleanup_hook;
   while (hook != NULL) {
     hook->fn(hook->arg);
-    iotjs_cleanup_hook_t* memo = hook;
+    rtnode_cleanup_hook_t* memo = hook;
     hook = hook->next;
-    free(memo);
+    rtnode_free(memo);
   }
 }

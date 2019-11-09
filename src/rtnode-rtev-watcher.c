@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-#include "js-rtev-watcher.h"
+#include "rtnode-rtev-watcher.h"
 
 static void js_rtev_watcher_close_processor(rtev_watcher_t *watcher) {
-  js_rtev_watcher_data *watcher_data = JS_RTEV_WATCHER_DATA(watcher);
+  rtnode_rtev_watcher_data *watcher_data = RTNODE_RTEV_WATCHER_DATA(watcher);
 
   if (watcher_data->close_cb != NULL) {
     watcher_data->close_cb(watcher);
@@ -25,33 +25,33 @@ static void js_rtev_watcher_close_processor(rtev_watcher_t *watcher) {
   // Decrease ref count of Javascript object. From now the object can be
   // reclaimed.
   jerry_release_value(watcher_data->jobject);
-  js_free(watcher);
+  rtnode_free(watcher);
 }
 
-void js_rtev_watcher_bind(size_t watcher_size,
-                          const jerry_value_t jobject,
-                          const jerry_object_native_info_t *native,
-                          size_t extra_data_size,
-                          js_close_cb close_cb) {
-  JS_ASSERT(jerry_value_is_object(jobject));
+void rtnode_rtev_watcher_bind(size_t watcher_size,
+                              const jerry_value_t jobject,
+                              const jerry_object_native_info_t *native,
+                              size_t extra_data_size,
+                              rtnode_close_cb close_cb) {
+  RTNODE_ASSERT(jerry_value_is_object(jobject));
 
   /* Make sure that the jerry_value_t is aligned */
-  size_t aligned_request_size = JS_ALIGNUP(watcher_size, 8u);
+  size_t aligned_request_size = RTNODE_ALIGNUP(watcher_size, 8u);
 
-  char* request_memory = js_malloc(
-      aligned_request_size + sizeof(js_rtev_watcher_data) + extra_data_size);
+  char* request_memory = rtnode_malloc(
+    aligned_request_size + sizeof(rtnode_rtev_watcher_data) + extra_data_size);
   rtev_watcher_t *watcher = (rtev_watcher_t *) request_memory;
   watcher->data = request_memory + aligned_request_size;
   watcher->close_cb = js_rtev_watcher_close_processor;
 
-  JS_RTEV_WATCHER_DATA(watcher)->jobject = jobject;
-  JS_RTEV_WATCHER_DATA(watcher)->close_cb = close_cb;
+  RTNODE_RTEV_WATCHER_DATA(watcher)->jobject = jobject;
+  RTNODE_RTEV_WATCHER_DATA(watcher)->close_cb = close_cb;
   jerry_acquire_value(jobject);
 
   jerry_set_object_native_pointer(jobject, watcher, native);
 }
 
-int js_rtev_watcher_close(rtev_watcher_t *watcher) {
+int rtnode_rtev_watcher_close(rtev_watcher_t *watcher) {
   if (watcher->state == RTEV_STATE_CLOSING ||
     watcher->state == RTEV_STATE_CLOSED) {
     return 0;

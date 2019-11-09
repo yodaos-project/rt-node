@@ -1,4 +1,4 @@
-#include "js-common.h"
+#include "rt-node.h"
 
 #ifdef __FREERTOS__
 #include "freertos/FreeRTOS.h"
@@ -12,7 +12,7 @@
 #define FN_CALLOC(c, s) calloc(c, s + sizeof(extra_memory_t))
 #endif
 
-js_context_t *js_ctx = NULL;
+rtnode_context_t *js_ctx = NULL;
 
 typedef struct {
   size_t size;
@@ -41,44 +41,44 @@ static void* uninit_mem(void *ptr) {
   return p;
 }
 
-void js_free(void *ptr) {
+void rtnode_free(void *ptr) {
   ptr = uninit_mem(ptr);
   free(ptr);
 }
 
-void* js_malloc(size_t size) {
+void* rtnode_malloc(size_t size) {
   void *ptr = FN_MALLOC(size);
-  JS_ASSERT(ptr != NULL);
+  RTNODE_ASSERT(ptr != NULL);
   return init_mem(ptr, size);
 }
 
-void* js_realloc(void *ptr, size_t size) {
+void* rtnode_realloc(void *ptr, size_t size) {
   void *old_ptr = ptr;
   ptr = FN_REALLOC(ptr, size);
   // ignore size == 0
-  JS_ASSERT(ptr != NULL);
+  RTNODE_ASSERT(ptr != NULL);
   if (ptr != old_ptr && old_ptr != NULL) {
     uninit_mem(old_ptr);
   }
   return init_mem(ptr, size);
 }
 
-void* js_calloc(size_t count, size_t size) {
+void* rtnode_calloc(size_t count, size_t size) {
   void *ptr = FN_CALLOC(count, size);
-  JS_ASSERT(ptr != NULL);
+  RTNODE_ASSERT(ptr != NULL);
   return init_mem(ptr, size * count);
 }
 
-void* js_jerry_alloc(size_t size, void *cb_data) {
-  void *ptr = js_malloc(size);
-  JS_ASSERT(ptr != NULL);
+void* rtnode_jerry_alloc(size_t size, void *cb_data) {
+  void *ptr = rtnode_malloc(size);
+  RTNODE_ASSERT(ptr != NULL);
   return ptr;
 }
 
-uint64_t js_get_memory_total() {
+uint64_t rtnode_get_memory_total() {
   return mem_total;
 }
 
-uint64_t js_get_memory_alloc_count() {
+uint64_t rtnode_get_memory_alloc_count() {
   return alloc_count;
 }

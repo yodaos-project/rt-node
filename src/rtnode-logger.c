@@ -1,4 +1,4 @@
-#include "js-logger.h"
+#include "rtnode-logger.h"
 #include <string.h>
 #include <time.h>
 #include <stdarg.h>
@@ -7,7 +7,7 @@
 #include <unistd.h>
 
 static int redirect_fd = -1;
-static log_level min_level = LOG_LEVEL_VERBOSE;
+static rtnode_log_level min_level = RTNODE_LOG_LEVEL_V;
 
 static const char *level_colors[] = {
   "\x1b[0m", "\x1b[32m", "\x1b[33m", "\x1b[31m", "\x1b[35m"
@@ -17,12 +17,12 @@ static const char *level_des[] = {
   "verbose", "info", "warn", "error", "fatal"
 };
 
-void do_log(log_level level, const char *file, int line, const char *fmt, ...) {
+void rtnode_do_log(rtnode_log_level level,  const char *fmt, ...) {
   if (level < min_level) {
     return;
   }
-  if (level < LOG_LEVEL_VERBOSE || level > LOG_LEVEL_FATAL) {
-    level = LOG_LEVEL_INFO;
+  if (level < RTNODE_LOG_LEVEL_V || level > RTNODE_LOG_LEVEL_F) {
+    level = RTNODE_LOG_LEVEL_I;
   }
   struct timeval cur_time = {};
   gettimeofday(&cur_time, NULL);
@@ -37,7 +37,7 @@ void do_log(log_level level, const char *file, int line, const char *fmt, ...) {
   size_t fmt_len = 64 + strlen(fmt);
   char fmt_buf[fmt_len];
   FILE *log_file;
-  if (level >= LOG_LEVEL_ERROR) {
+  if (level >= RTNODE_LOG_LEVEL_E) {
     log_file = stderr;
   } else {
     log_file = stdout;
@@ -63,6 +63,6 @@ void do_log(log_level level, const char *file, int line, const char *fmt, ...) {
   va_end(args);
 }
 
-void set_logger_level(log_level level) {
+void rtnode_set_logger_level(rtnode_log_level level) {
   min_level = level;
 }

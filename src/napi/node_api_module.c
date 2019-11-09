@@ -13,10 +13,9 @@
  * limitations under the License.
  */
 
-#include "iotjs.h"
+#include "rt-node.h"
 #include "jerryscript-ext/handle-scope.h"
 #include "internal/node_api_internal.h"
-#include "node_api.h"
 
 static napi_module* mod_pending;
 
@@ -29,20 +28,20 @@ int napi_module_init_pending(jerry_value_t* exports) {
     return napi_module_no_pending;
   }
 
-  jerry_addon_register_func Init =
-      (jerry_addon_register_func)mod_pending->nm_register_func;
+  napi_addon_register_func init =
+      (napi_addon_register_func)mod_pending->nm_register_func;
 
-  if (Init == NULL) {
+  if (init == NULL) {
     return napi_module_no_nm_register_func;
   }
 
-  napi_env env = iotjs_get_current_napi_env();
+  napi_env env = rtnode_get_current_napi_env();
 
   jerryx_handle_scope scope;
   jerryx_open_handle_scope(&scope);
 
   jerry_value_t jval_exports = jerry_create_object();
-  napi_value nvalue_ret = (*Init)(env, jval_exports);
+  napi_value nvalue_ret = (*init)(env, AS_NAPI_VALUE(jval_exports));
 
   if (nvalue_ret == NULL) {
     *exports = jerry_create_undefined();
@@ -60,11 +59,11 @@ int napi_module_init_pending(jerry_value_t* exports) {
 
   mod_pending = NULL;
 
-  if (iotjs_napi_is_exception_pending(env)) {
+  if (rtnode_napi_is_exception_pending(env)) {
     jerry_value_t jval_err;
-    jval_err = iotjs_napi_env_get_and_clear_exception(env);
+    jval_err = rtnode_napi_env_get_and_clear_exception(env);
     if (jval_err == (uintptr_t)NULL) {
-      jval_err = iotjs_napi_env_get_and_clear_fatal_exception(env);
+      jval_err = rtnode_napi_env_get_and_clear_fatal_exception(env);
     }
     jerry_release_value(jval_exports);
     *exports = jval_err;

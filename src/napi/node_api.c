@@ -25,19 +25,22 @@ static napi_node_version node_version = {
 
 napi_status napi_get_node_version(napi_env env,
                                   const napi_node_version** version) {
+  NAPI_TRY_ENV(env);
   NAPI_ASSIGN(version, &node_version);
   NAPI_RETURN(napi_ok);
 }
 
 napi_status napi_get_version(napi_env env, uint32_t* result) {
+  NAPI_TRY_ENV(env);
   NAPI_ASSIGN(result, NAPI_VERSION);
   NAPI_RETURN(napi_ok);
 }
 
-napi_status napi_get_uv_event_loop(napi_env env, uv_loop_t** loop) {
-  NAPI_TRY_ENV(env);
-  iotjs_environment_t* iotjs_env = iotjs_environment_get();
-  uv_loop_t* iotjs_loop = iotjs_environment_loop(iotjs_env);
-  NAPI_ASSIGN(loop, iotjs_loop);
-  NAPI_RETURN(napi_ok);
-}
+// FIXME: implement this function
+//napi_status napi_get_uv_event_loop(napi_env env, uv_loop_t** loop) {
+//  NAPI_TRY_ENV(env);
+//  rtnode_environment_t* rtnode_env = rtnode_environment_get();
+//  uv_loop_t* rtnode_loop = rtnode_environment_loop(rtnode_env);
+//  NAPI_ASSIGN(loop, rtnode_loop);
+//  NAPI_RETURN(napi_ok);
+//}

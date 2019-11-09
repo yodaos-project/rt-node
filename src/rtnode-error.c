@@ -1,29 +1,29 @@
-#include "js-error.h"
-#include "js-common.h"
+#include "rtnode-error.h"
+#include "rt-node.h"
 
 #define SYNTAX_ERROR_CONTEXT_SIZE 2
 
-void js_on_fatal_error(jerry_type_t jerror, const jerry_char_t *source) {
-  js_print_error(jerror, source);
+void rtnode_on_fatal_error(jerry_type_t jerror, const jerry_char_t *source) {
+  rtnode_print_error(jerror, source);
 }
 
-void js_print_error(jerry_value_t error_value, const jerry_char_t *source) {
-  error_value = jerry_get_value_from_error (error_value, true);
-  JS_ASSERT (!jerry_value_is_error (error_value));
+void rtnode_print_error(jerry_value_t jerror, const jerry_char_t *source) {
+  jerror = jerry_get_value_from_error (jerror, true);
+  RTNODE_ASSERT (!jerry_value_is_error (jerror));
   const jerry_char_t *buffer = source;
 
   jerry_char_t err_str_buf[256];
 
-  if (jerry_value_is_object (error_value))
+  if (jerry_value_is_object (jerror))
   {
     jerry_value_t stack_str = jerry_create_string ((const jerry_char_t *) "stack");
-    jerry_value_t backtrace_val = jerry_get_property (error_value, stack_str);
+    jerry_value_t backtrace_val = jerry_get_property (jerror, stack_str);
     jerry_release_value (stack_str);
 
     if (!jerry_value_is_error (backtrace_val)
         && jerry_value_is_array (backtrace_val))
     {
-      LOG_ERROR ("Exception backtrace:");
+      RTNODE_LOG_E ("Exception backtrace:");
 
       uint32_t length = jerry_get_array_length (backtrace_val);
 
@@ -44,7 +44,7 @@ void js_print_error(jerry_value_t error_value, const jerry_char_t *source) {
 
           if (str_size >= 256)
           {
-            LOG_ERROR("%3u: [Backtrace string too long]", i);
+            RTNODE_LOG_E("%3u: [Backtrace string too long]", i);
           }
           else
           {
@@ -52,7 +52,7 @@ void js_print_error(jerry_value_t error_value, const jerry_char_t *source) {
             assert (string_end == str_size);
             err_str_buf[string_end] = 0;
 
-            LOG_ERROR("%3u: %s", i, err_str_buf);
+            RTNODE_LOG_E("%3u: %s", i, err_str_buf);
           }
         }
 
@@ -62,7 +62,7 @@ void js_print_error(jerry_value_t error_value, const jerry_char_t *source) {
     jerry_release_value (backtrace_val);
   }
 
-  jerry_value_t err_str_val = jerry_value_to_string (error_value);
+  jerry_value_t err_str_val = jerry_value_to_string (jerror);
   jerry_size_t err_str_size = jerry_get_utf8_string_size (err_str_val);
 
   if (err_str_size >= 256)
@@ -78,7 +78,7 @@ void js_print_error(jerry_value_t error_value, const jerry_char_t *source) {
     err_str_buf[string_end] = 0;
 
     if (jerry_is_feature_enabled (JERRY_FEATURE_ERROR_MESSAGES)
-        && jerry_get_error_type (error_value) == JERRY_ERROR_SYNTAX)
+        && jerry_get_error_type (jerror) == JERRY_ERROR_SYNTAX)
     {
       jerry_char_t *string_end_p = err_str_buf + string_end;
       unsigned int err_line = 0;
@@ -99,6 +99,7 @@ void js_print_error(jerry_value_t error_value, const jerry_char_t *source) {
           }
 
           path_str_p = (char *) current_p;
+          RTNODE_UNUSED(path_str_p);
           while (current_p < string_end_p && *current_p != ':')
           {
             current_p++;
@@ -169,6 +170,6 @@ void js_print_error(jerry_value_t error_value, const jerry_char_t *source) {
     }
   }
 
-  LOG_ERROR("Script Error: %s", err_str_buf);
+  RTNODE_LOG_E("Script Error: %s", err_str_buf);
   jerry_release_value (err_str_val);
 }

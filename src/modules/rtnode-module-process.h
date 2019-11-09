@@ -1,7 +1,7 @@
 #ifndef _JS_MODULE_PROCESS_H_
 #define _JS_MODULE_PROCESS_H_
 
-#include "js-common.h"
+#include "rt-node.h"
 
 jerry_value_t js_init_process();
 

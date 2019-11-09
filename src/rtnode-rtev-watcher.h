@@ -16,16 +16,16 @@
 #ifndef JS_RTEV_WATCHER
 #define JS_RTEV_WATCHER
 
-#include "js-common.h"
+#include "rt-node.h"
 
-typedef void (*js_close_cb)(rtev_watcher_t *);
+typedef void (*rtnode_close_cb)(rtev_watcher_t *);
 
 typedef struct {
   jerry_value_t jobject;
-  js_close_cb close_cb;
-} js_rtev_watcher_data;
+  rtnode_close_cb close_cb;
+} rtnode_rtev_watcher_data;
 
-#define JS_ALIGNUP(value, alignment) \
+#define RTNODE_ALIGNUP(value, alignment) \
   (((value) + ((alignment)-1)) & ~((alignment)-1))
 
 /**
@@ -46,19 +46,19 @@ typedef struct {
  *  |----------------|
  *
  */
-void js_rtev_watcher_bind(size_t watcher_size,
-                          const jerry_value_t jobject,
-                          const jerry_object_native_info_t *native,
-                          size_t extra_data_size,
-                          js_close_cb close_cb);
-int js_rtev_watcher_close(rtev_watcher_t* watcher);
+void rtnode_rtev_watcher_bind(size_t watcher_size,
+                              const jerry_value_t jobject,
+                              const jerry_object_native_info_t *native,
+                              size_t extra_data_size,
+                              rtnode_close_cb close_cb);
+int rtnode_rtev_watcher_close(rtev_watcher_t *watcher);
 
 /**
  * Returns a pointer to the watcher data struct referenced
  * by the rtev_watcher_t->data member.
  */
-#define JS_RTEV_WATCHER_DATA(RTEV_WATCHER) \
-  ((js_rtev_watcher_data*)((RTEV_WATCHER)->data))
+#define RTNODE_RTEV_WATCHER_DATA(RTEV_WATCHER) \
+  ((rtnode_rtev_watcher_data*)((RTEV_WATCHER)->data))
 
 /**
  * Returns a char* pointer for any extra data.
@@ -67,8 +67,8 @@ int js_rtev_watcher_close(rtev_watcher_t* watcher);
  * Make sure that the extra data is correctly allocated by using the
  * js_rtev_watcher_bind method call.
  */
-#define JS_RTEV_WATCHER_EXTRA_DATA(RTEV_WATCHER) \
-  ((char*)((char*)((RTEV_WATCHER)->data) + sizeof(js_rtev_watcher_data)))
+#define RTNODE_RTEV_WATCHER_EXTRA_DATA(RTEV_WATCHER) \
+  ((char*)((char*)((RTEV_WATCHER)->data) + sizeof(rtnode_rtev_watcher_data)))
 
 
 #endif /* JS_RTEV_WATCHER */

@@ -14,8 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-#  This file converts src/js/*.js to a C-array in src/iotjs_js.[h|c] file.
-# And this file also generates magic string list in src/iotjs_string_ext.inl.h
+#  This file converts src/js/*.js to a C-array in src/rtnode_js.[h|c] file.
+# And this file also generates magic string list in src/rtnode_string_ext.inl.h
 # file to reduce JerryScript heap usage.
 
 import os
@@ -85,7 +85,7 @@ FOOTER1 = '''
 
 HEADER2 = '''#include <stdio.h>
 #include <stdint.h>
-#include "js-snapshots.h"
+#include "rtnode-snapshots.h"
 '''
 
 EMPTY_LINE = '\n'
@@ -107,9 +107,9 @@ NATIVE_SNAPSHOT_STRUCT_H = '''
 typedef struct {
   const char* name;
   const uint32_t idx;
-} js_snapshot_module_t;
+} rtnode_snapshot_module_t;
 
-extern const js_snapshot_module_t js_modules[];
+extern const rtnode_snapshot_module_t js_modules[];
 extern const size_t js_modules_size;
 '''
 
@@ -133,17 +133,17 @@ typedef struct {
   const char* name;
   const void* code;
   const size_t length;
-} js_snapshot_module_t;
+} rtnode_snapshot_module_t;
 
-extern const js_snapshot_module_t js_modules[];
-extern const size_t js_modules_size;
+extern const rtnode_snapshot_module_t rtnode_modules[];
+extern const size_t rtnode_modules_size;
 '''
 
 NATIVE_STRUCT_C = '''
-const js_snapshot_module_t js_modules[] = {{
+const rtnode_snapshot_module_t rtnode_modules[] = {{
 {MODULES}
 }};
-const size_t js_modules_size = sizeof(js_modules) / sizeof(js_snapshot_module_t);
+const size_t rtnode_modules_size = sizeof(rtnode_modules) / sizeof(rtnode_snapshot_module_t);
 '''
 
 
@@ -196,12 +196,12 @@ def get_snapshot_contents(js_path, snapshot_tool, literals=None):
     module_name = os.path.splitext(os.path.basename(js_path))[0]
 
     with open(wrapped_path, 'w') as fwrapped, open(js_path, "r") as fmodule:
-        if module_name != "iotjs":
+        if module_name != "rtnode":
             fwrapped.write("(function(exports, require, module, native) {\n")
 
         fwrapped.write(fmodule.read())
 
-        if module_name != "iotjs":
+        if module_name != "rtnode":
             fwrapped.write("});\n")
     cmd = [snapshot_tool, "generate", "-o", snapshot_path]
     if literals:
@@ -281,16 +281,16 @@ def js2c(options, js_modules):
     verbose = options.verbose
     magic_string_set = set()
 
-    # str_const_regex = re.compile('^#define IOTJS_MAGIC_STRING_\w+\s+"(\w+)"$')
-    # with open(fs.join(path.SRC_ROOT, 'iotjs_magic_strings.in'), 'r') as fin_h:
+    # str_const_regex = re.compile('^#define RTNODE_MAGIC_STRING_\w+\s+"(\w+)"$')
+    # with open(fs.join(path.SRC_ROOT, 'rtnode_magic_strings.in'), 'r') as fin_h:
     #     for line in fin_h:
     #         result = str_const_regex.search(line)
     #         if result:
     #             magic_string_set.add(result.group(1))
 
     # generate the code for the modules
-    with open(fs.join(path.SRC_ROOT, 'js-snapshots.h'), 'w') as fout_h, \
-         open(fs.join(path.SRC_ROOT, 'js-snapshots.c'), 'w') as fout_c:
+    with open(fs.join(path.SRC_ROOT, 'rtnode-snapshots.h'), 'w') as fout_h, \
+         open(fs.join(path.SRC_ROOT, 'rtnode-snapshots.c'), 'w') as fout_c:
 
         fout_h.write(LICENSE)
         fout_h.write(HEADER1)
@@ -378,7 +378,7 @@ def js2c(options, js_modules):
         fout_c.write(EMPTY_LINE)
 
     # Write out the external magic strings
-    # magic_str_path = fs.join(path.SRC_ROOT, 'iotjs_string_ext.inl.h')
+    # magic_str_path = fs.join(path.SRC_ROOT, 'rtnode_string_ext.inl.h')
     # with open(magic_str_path, 'w') as fout_magic_str:
     #     fout_magic_str.write(LICENSE)
     #     fout_magic_str.write(MAGIC_STRINGS_HEADER)

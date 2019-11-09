@@ -12,24 +12,35 @@ include_directories(
   deps/rtev/include
   deps/rtev/src
   include
+  src/internal
   src
   src/modules
 )
 set(SRCS
   platforms/unix/main.c
-  src/js-binding.c
-  src/js-error.c
-  src/js-logger.c
-  src/js-main.c
-  src/js-modules.c
-  src/js-native.c
-  src/js-snapshots.c
-  src/js-common.c
-  src/js-rtev-watcher.c
-  src/modules/js-module-console.c
-  src/modules/js-module-process.c
-  src/modules/js-module-require.c
-  src/modules/js-module-timer.c
+  src/rtnode.c
+  src/rtnode-binding.c
+  src/rtnode-error.c
+  src/rtnode-logger.c
+  src/rtnode-modules.c
+  src/rtnode-native.c
+  src/rtnode-snapshots.c
+  src/rtnode-common.c
+  src/rtnode-rtev-watcher.c
+  src/modules/rtnode-module-console.c
+  src/modules/rtnode-module-process.c
+  src/modules/rtnode-module-require.c
+  src/modules/rtnode-module-timer.c
+  src/napi/node_api.c
+#  src/napi/node_api_async.c
+  src/napi/node_api_env.c
+  src/napi/node_api_function.c
+  src/napi/node_api_lifetime.c
+  src/napi/node_api_module.c
+  src/napi/node_api_object_wrap.c
+  src/napi/node_api_property.c
+#  src/napi/node_api_tsfn.c
+  src/napi/node_api_value.c
   deps/rtev/src/allocator.c
   deps/rtev/src/async.c
   deps/rtev/src/context.c

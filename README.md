@@ -10,8 +10,11 @@ The following runtime modules are built in:
 - utils
 - console
 - assert
+- N-API
 
-In order to be compatible with different embed JavaScript engines, N-API will be supported in the future.
+N-API is supported in order to be compatible with different embed JavaScript engines, the following N-API features is WIP:
+- async
+- thread safe function
 
 ## Dependencies
 
@@ -20,7 +23,7 @@ In order to be compatible with different embed JavaScript engines, N-API will be
 
 ## Example
 
-JavaScript sources are packaged in `src/js-snapshots.c/h`. Use `sh tools/js2c.sh` to package JavaScript Sources if the sources is changed.
+JavaScript sources are packaged in `src/js-snapshots.c/h`. Use `sh tools/js2c.sh` to package JavaScript Sources if the sources are changed.
 
 `src/js/app.js` is the entry of JavaScript, here is an example:
 

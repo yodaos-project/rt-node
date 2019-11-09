@@ -1,10 +1,10 @@
-#include "js-native.h"
-#include "js-module-console.h"
-#include "js-module-require.h"
-#include "js-module-timer.h"
-#include "js-module-process.h"
+#include "rtnode-native.h"
+#include "rtnode-module-console.h"
+#include "rtnode-module-require.h"
+#include "rtnode-module-timer.h"
+#include "rtnode-module-process.h"
 
-const js_native_module_t native_modules[] = {
+const rtnode_native_module_t native_modules[] = {
   { 
     .type = JS_NATIVE_GLOBAL,
     .fn.global = js_init_require,
@@ -27,4 +27,4 @@ const js_native_module_t native_modules[] = {
   }
 };
 
-const size_t native_modules_size = sizeof(native_modules) / sizeof(js_native_module_t);
+const size_t native_modules_size = sizeof(native_modules) / sizeof(rtnode_native_module_t);
