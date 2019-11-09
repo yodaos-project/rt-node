@@ -12,7 +12,7 @@ The following runtime modules are built in:
 - assert
 - N-API
 
-N-API is supported in order to be compatible with different embed JavaScript engines, the following N-API features is WIP:
+N-API is supported in order to be compatible with different embed JavaScript engines, the following N-API features are WIP:
 - async
 - thread safe function
 
