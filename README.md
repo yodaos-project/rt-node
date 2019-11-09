@@ -69,7 +69,7 @@ $ ./build/rtnode
 Currently support esp-idf build framework.
 
 ```shell
-$ cmake -B./build -H. -DPLATFORM=freertos
+$ cmake -B./build -H. -DPLATFORM=espidf
 $ make -C./build
 $ sh tools/esp_flash.sh -p $device_port
 ```

@@ -11,6 +11,12 @@ set(RTEV_SOURCE "${CMAKE_SOURCE_DIR}/deps/rtev")
 # Jerryscript setting here
 set(JERRY_GLOBAL_HEAP_SIZE "(128)")
 
+file(GLOB JS_FILES src/js/*.js)
+add_custom_command(OUTPUT ${CMAKE_SOURCE_DIR}/src/js-snapshots.c ${CMAKE_SOURCE_DIR}/js-snapshots.h
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  COMMAND bash ${CMAKE_SOURCE_DIR}/tools/js2c.sh
+  DEPENDS ${JS_FILES} ${CMAKE_SOURCE_DIR}/tools/js2c.sh ${CMAKE_SOURCE_DIR}/tools/js2c.py)
+
 if("${PLATFORM}" STREQUAL "espidf")
   set(EXTRA_COMPONENT_DIRS platforms/esp-idf)
   include($ENV{IDF_PATH}/tools/cmake/project.cmake)
