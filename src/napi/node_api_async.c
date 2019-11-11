@@ -15,6 +15,7 @@
  */
 
 #include "internal/node_api_internal.h"
+#include "rtnode-module-process.h"
 
 static void rtnode_uv_work_cb(uv_work_t* req) {
   rtnode_async_work_t* async_work = (rtnode_async_work_t*)req->data;
@@ -63,7 +64,7 @@ static void rtnode_uv_work_after_cb(uv_work_t* req, int status) {
     }
   }
 
-  rtnode_process_next_tick();
+  rtnode_run_next_tick();
 }
 
 napi_status napi_create_async_work(napi_env env, napi_value async_resource,
@@ -102,6 +103,7 @@ napi_status napi_delete_async_work(napi_env env, napi_async_work work) {
 
 napi_status napi_queue_async_work(napi_env env, napi_async_work work) {
   NAPI_TRY_ENV(env);
+  rtnode_context_t *rtnode_ctx = rtnode_get_context();
   rtnode_environment_t* rtnode_env = rtnode_environment_get();
   uv_loop_t* loop = rtnode_environment_loop(rtnode_env);
 
@@ -110,7 +112,7 @@ napi_status napi_queue_async_work(napi_env env, napi_async_work work) {
   int status =
       uv_queue_work(loop, work_req, rtnode_uv_work_cb, rtnode_uv_work_after_cb);
   if (status != 0) {
-    const char* err_name = uv_err_name(status);
+    const char* err_name = strerror(status);
     NAPI_RETURN_WITH_MSG(napi_generic_failure, err_name);
   }
   NAPI_RETURN(napi_ok);
@@ -118,10 +120,10 @@ napi_status napi_queue_async_work(napi_env env, napi_async_work work) {
 
 napi_status napi_cancel_async_work(napi_env env, napi_async_work work) {
   NAPI_TRY_ENV(env);
-  uv_work_t* work_req = (uv_work_t*)work;
-  int status = uv_cancel((uv_req_t*)work_req);
+  rtev_watcher_t* work_req = (rtev_watcher_t*)work;
+  int status = rtev_watcher_close(work_req);
   if (status != 0) {
-    const char* err_name = uv_err_name(status);
+    const char* err_name = strerror(status);
     NAPI_RETURN_WITH_MSG(napi_generic_failure, err_name);
   }
   NAPI_RETURN(napi_ok);
@@ -157,7 +159,7 @@ napi_status napi_make_callback(napi_env env, napi_async_context async_context,
 
   napi_status status = napi_call_function(env, recv, func, argc, argv, result);
   if (!rtnode_napi_is_exception_pending(env)) {
-    rtnode_process_next_tick();
+    rtnode_run_next_tick();
   } else {
     // In this case explicit napi_async_destroy calls won't be executed, so
     // free the context manually.

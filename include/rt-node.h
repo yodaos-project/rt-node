@@ -1,5 +1,5 @@
-#ifndef _JS_MAIN_H_
-#define _JS_MAIN_H_
+#ifndef _RTNODE_H_
+#define _RTNODE_H_
 
 #include "rtev.h"
 #include "rtnode-binding.h"
@@ -87,8 +87,8 @@ typedef struct {
   jerry_context_t* jerry;
 } rtnode_context_t;
 
-extern rtnode_context_t *js_ctx;
+rtnode_context_t *rtnode_get_context();
 
 extern int rtnode_start();
 
-#endif //_JS_MAIN_H_
+#endif //_RTNODE_H_

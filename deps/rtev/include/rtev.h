@@ -33,6 +33,7 @@ typedef enum {
   RTEV_TYPE_TIMER = 1,
   RTEV_TYPE_ASYNC,
   RTEV_TYPE_TICK,
+  RTEV_TYPE_WORKER,
 } rtev_watcher_type_t;
 
 typedef enum {
@@ -47,6 +48,11 @@ typedef struct rtev_watcher_t rtev_watcher_t;
 typedef struct rtev_async_t rtev_async_t;
 typedef struct rtev_timer_t rtev_timer_t;
 typedef struct rtev_tick_t rtev_tick_t;
+typedef struct rtev_worker_t rtev_worker_t;
+
+#ifndef RTEV_THREADPOOL_SIZE
+#define RTEV_THREADPOOL_SIZE 2
+#endif
 
 // context structure start
 struct rtev_ctx_t {
@@ -54,11 +60,17 @@ struct rtev_ctx_t {
   QUEUE timer_queue;
   QUEUE async_queue;
   QUEUE tick_queue;
+  QUEUE worker_queue;
+  pthread_mutex_t worker_lock;
+  pthread_cond_t worker_cond;
+  rtev_async_t *worker_async;
+  QUEUE worker_done_queue;
+  pthread_mutex_t worker_done_lock;
   rtev_watcher_t *closing_watchers;
   rtev_watcher_t *pending_watchers;
   uint64_t watcher_count;
   uint64_t time;          // in ms
-  pthread_mutex_t async_mutex;
+  pthread_mutex_t async_lock;
   pthread_cond_t async_cond;
   int async_pending;
 };
@@ -107,6 +119,14 @@ struct rtev_tick_t {
   rtev_tick_cb cb;
 };
 
+typedef void (*rtev_worker_cb)(rtev_worker_t *worker);
+struct rtev_worker_t {
+  RTEV_WATCHER_FIELDS;
+  int pending;
+  rtev_worker_cb cb;
+  rtev_worker_cb done_cb;
+};
+
 // core fn start
 int rtev_ctx_init(rtev_ctx_t *ctx);
 int rtev_ctx_loop(rtev_ctx_t *ctx, rtev_run_type_t type);
@@ -125,7 +145,6 @@ int rtev_timer_start(rtev_ctx_t *ctx, rtev_timer_t *timer, uint64_t timeout,
 int rtev_timer_close(rtev_timer_t *timer);
 
 // async fn start
-typedef void (*rtev_threadpool_fn)(void *data);
 int rtev_async_start(rtev_ctx_t *ctx, rtev_async_t *async, rtev_async_cb cb,
   rtev_close_cb close_cb);
 /* call in other threads to make an async callback in main thread */
@@ -137,20 +156,21 @@ int rtev_tick_start(rtev_ctx_t *ctx, rtev_tick_t *tick, rtev_tick_cb cb,
   rtev_close_cb close_cb);
 int rtev_tick_close(rtev_tick_t *tick);
 
-// threadpool fn start
-void rtev_threadpool_post(rtev_threadpool_fn fn, void *data);
+// worker fn start
+int rtev_worker_start(rtev_ctx_t *ctx, rtev_worker_t *worker, rtev_worker_cb cb,
+  rtev_worker_cb done_cb, rtev_close_cb close_cb);
+int rtev_worker_close(rtev_worker_t *worker);
 
 // internal fn start
 int _rtev_watcher_init(rtev_ctx_t *ctx, rtev_watcher_t *watcher,
   rtev_watcher_type_t type, rtev_close_cb close_cb);
-int _rtev_watcher_start(rtev_watcher_t *watcher);
+int _rtev_watcher_pending(rtev_watcher_t *watcher);
 int _rtev_watcher_close(rtev_watcher_t *watcher);
 void _rtev_add_pending_watchers(rtev_ctx_t *ctx);
 void _rtev_close_watchers(rtev_ctx_t *ctx);
-void _rtev_set_next_timeout(rtev_ctx_t *ctx, struct timespec *spec);
 void _rtev_update_time(rtev_ctx_t *ctx);
-void _rtev_threadpool_init();
-void _rtev_threadpool_stop();
+void _rtev_threadpool_init(rtev_ctx_t *ctx);
+void _rtev_threadpool_stop(rtev_ctx_t *ctx);
 void _rtev_run_async(rtev_ctx_t *ctx);
 void _rtev_run_timers(rtev_ctx_t *ctx);
 void _rtev_run_ticks(rtev_ctx_t *ctx);

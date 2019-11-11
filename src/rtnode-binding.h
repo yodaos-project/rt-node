@@ -1,5 +1,5 @@
-#ifndef _JS_BINDING_H_
-#define _JS_BINDING_H_
+#ifndef _RTNODE_BINDING_H_
+#define _RTNODE_BINDING_H_
 
 #include "jerryscript.h"
 #include "jerryscript-ext/handler.h"
@@ -49,4 +49,4 @@ jerry_value_t rtnode_call_function_no_tick(jerry_value_t jfunc,
                                            jerry_size_t jargc,
                                            const jerry_char_t *source);
 
-#endif // _JS_BINDING_H_
+#endif // _RTNODE_BINDING_H_

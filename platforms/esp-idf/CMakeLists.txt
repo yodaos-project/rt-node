@@ -1,42 +1,11 @@
-set(COMPONENT_ADD_INCLUDEDIRS
-  ../../deps/jerryscript/jerry-core/include
-  ../../deps/jerryscript/jerry-ext/include
-  ../../deps/jerryscript/jerry-port/default/include
-  ../../deps/rtev/include
-  ../../deps/rtev/src
-  ../../src
-  ../../src/modules
-  ../../include
-  )
+set(COMPONENT_ADD_INCLUDEDIRS ${INCLUDE_LIST})
 set(COMPONENT_SRCS
   main.c
-  ../../src/rtnode.c
-  ../../src/rtnode-binding.c
-  ../../src/rtnode-error.c
-  ../../src/rtnode-logger.c
-  ../../src/rtnode-modules.c
-  ../../src/rtnode-native.c
-  ../../src/rtnode-common.c
-  ../../src/rtnode-rtev-watcher.c
-  ../../src/rtnode-snapshots.c
-  ../../src/modules/rtnode-module-console.c
-  ../../src/modules/rtnode-module-process.c
-  ../../src/modules/rtnode-module-require.c
-  ../../src/modules/rtnode-module-timer.c
-  ../../src/napi/node_api.c
-  #  ../../src/napi/node_api_async.c
-  ../../src/napi/node_api_env.c
-  ../../src/napi/node_api_function.c
-  ../../src/napi/node_api_lifetime.c
-  ../../src/napi/node_api_module.c
-  ../../src/napi/node_api_object_wrap.c
-  ../../src/napi/node_api_property.c
-  #  ../../src/napi/node_api_tsfn.c
-  ../../src/napi/node_api_value.c
+  ${SRC_LIST}
   ../../deps/rtev/src/allocator.c
   ../../deps/rtev/src/async.c
   ../../deps/rtev/src/context.c
-  ../../deps/rtev/src/threadpool.c
+  ../../deps/rtev/src/worker.c
   ../../deps/rtev/src/tick.c
   ../../deps/rtev/src/timer.c
   ../../deps/rtev/src/watcher.c
@@ -52,7 +21,7 @@ string(REPLACE ";" "|" EXTERNAL_COMPILE_FLAGS_ALT_SEP "${EXTERNAL_COMPILE_FLAGS}
 
 externalproject_add(jerryscript_build
   PREFIX ${COMPONENT_DIR}
-  SOURCE_DIR ${JERRYSCRIPT_SOURCE}
+  SOURCE_DIR ../../deps/jerryscript
   BUILD_IN_SOURCE 0
   BINARY_DIR jerryscript
   INSTALL_COMMAND "" # Do not install to host

@@ -1,4 +1,3 @@
-
 #include "rtnode-modules.h"
 
 void rtnode_load_global_modules() {

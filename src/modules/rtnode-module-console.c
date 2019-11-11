@@ -14,7 +14,7 @@ RTNODE_FUNCTION(print_stderr) {
   return jerry_create_undefined();
 }
 
-jerry_value_t js_init_console() {
+jerry_value_t rtnode_init_console() {
   jerry_value_t jconsole = jerry_create_object();
   // console.log
   rtnode_object_set_method(jconsole, "stdout", print_stdout);

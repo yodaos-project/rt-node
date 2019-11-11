@@ -8,7 +8,7 @@ int rtev_tick_start(rtev_ctx_t *ctx, rtev_tick_t *tick, rtev_tick_cb cb,
     return r;
   }
   tick->cb = cb;
-  return _rtev_watcher_start(w);
+  return _rtev_watcher_pending(w);
 }
 
 int rtev_tick_close(rtev_tick_t *tick) {

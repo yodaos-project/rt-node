@@ -7,16 +7,17 @@
 int rtnode_start() {
   RTNODE_LOG_I("#####  rtnode start 🐒 #####");
   srand((unsigned)jerry_port_get_current_time());
+  rtnode_context_t *rtnode_ctx = rtnode_get_context();
+  rtnode_ctx = (rtnode_context_t *) rtnode_malloc(sizeof(rtnode_context_t));
 
-  js_ctx = (rtnode_context_t *) rtnode_malloc(sizeof(rtnode_context_t));
-
-  js_ctx->rtev = (rtev_ctx_t *) rtnode_malloc(sizeof(rtev_ctx_t));
+  rtnode_ctx->rtev = (rtev_ctx_t *) rtnode_malloc(sizeof(rtev_ctx_t));
   rtev_set_allocator(rtnode_malloc, rtnode_free);
-  rtev_ctx_init(js_ctx->rtev);
+  rtev_ctx_init(rtnode_ctx->rtev);
 
-  js_ctx->jerry = jerry_create_context(RTNODE_VM_HEAP_SIZE, rtnode_jerry_alloc,
-                                       NULL);
-  jerry_port_default_set_current_context(js_ctx->jerry);
+  rtnode_ctx->jerry = jerry_create_context(RTNODE_VM_HEAP_SIZE,
+    rtnode_jerry_alloc,
+    NULL);
+  jerry_port_default_set_current_context(rtnode_ctx->jerry);
   jerry_init(JERRY_INIT_EMPTY);
   rtnode_load_global_modules();
   const char *entry_name = "global";
@@ -31,12 +32,12 @@ int rtnode_start() {
   jerry_release_value(jfunc);
   jerry_release_value(jglobal);
 
-  rtev_ctx_loop(js_ctx->rtev, RTEV_RUN_DEFAULT);
+  rtev_ctx_loop(rtnode_ctx->rtev, RTEV_RUN_DEFAULT);
 
   jerry_cleanup();
-  rtnode_free(js_ctx->jerry);
-  rtnode_free(js_ctx->rtev);
-  rtnode_free(js_ctx);
+  rtnode_free(rtnode_ctx->jerry);
+  rtnode_free(rtnode_ctx->rtev);
+  rtnode_free(rtnode_ctx);
 
   uint64_t mem_left = rtnode_get_memory_total();
   if (mem_left > 0) {

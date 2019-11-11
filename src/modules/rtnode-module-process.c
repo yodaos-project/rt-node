@@ -1,7 +1,8 @@
 #include "rtnode-module-process.h"
 
-void js_run_next_tick() {
-  RTNODE_ABORT();
+void rtnode_run_next_tick() {
+  RTNODE_LOG_W("unimplemented method rtnode_uv_work_cb");
+  //  RTNODE_ABORT();
   // jerry_value_t jglobal = jerry_get_global_object();
   // jerry_value_t jprocess = rtnode_object_get_property(jglobal, "process");
   // jerry_value_t jfunc = rtnode_object_get_property(jprocess, "_onNextTick");
@@ -34,7 +35,7 @@ RTNODE_FUNCTION(memory_usage) {
   return jret;
 }
 
-jerry_value_t js_init_process() {
+jerry_value_t rtnode_init_process() {
   jerry_value_t jprocess = jerry_create_object();
   rtnode_object_set_method(jprocess, "memoryUsage", memory_usage);
   rtnode_object_set_method(jprocess,

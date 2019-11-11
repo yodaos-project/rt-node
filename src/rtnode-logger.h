@@ -1,5 +1,5 @@
-#ifndef _JS_LOGGER_H_
-#define _JS_LOGGER_H_
+#ifndef _RTNODE_LOGGER_H_
+#define _RTNODE_LOGGER_H_
 #include <stdio.h>
 
 typedef enum {
@@ -31,4 +31,4 @@ void rtnode_set_logger_level(rtnode_log_level level);
 }
 #endif
 
-#endif // _JS_LOGGER_H_
+#endif // _RTNODE_LOGGER_H_

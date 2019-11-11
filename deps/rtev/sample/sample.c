@@ -42,9 +42,9 @@ int main(int argc, char **argv) {
   tick.data = 0;
   rtev_ctx_init(&ctx);
   rtev_timer_start(&ctx, &timer, 2000, 1000, on_timer, on_close);
-  rtev_async_start(&ctx, &async, on_async_cb, on_close);
+//  rtev_async_start(&ctx, &async, on_async_cb, on_close);
   rtev_tick_start(&ctx, &tick, on_tick_cb, on_close);
-  rtev_threadpool_post(on_thread_fn, &async);
+//  rtev_threadpool_post(on_thread_fn, &async);
   rtev_ctx_loop(&ctx, RTEV_RUN_DEFAULT);
   printf("main thread end\n");
   return 0;

@@ -103,6 +103,7 @@ struct rtnode_napi_env_s {
 };
 
 struct rtnode_async_work_s {
+  // FIXME: type error
   rtev_async_t work_req;
 
   napi_env env;

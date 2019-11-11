@@ -93,7 +93,7 @@ RTNODE_FUNCTION(require) {
   return jexports;
 }
 
-jerry_value_t js_init_require() {
+jerry_value_t rtnode_init_require() {
   jerry_value_t jvalue = jerry_create_external_function(require);
   return jvalue;
 }

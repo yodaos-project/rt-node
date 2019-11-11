@@ -10,15 +10,15 @@ int rtev_async_start(rtev_ctx_t *ctx, rtev_async_t *async,
   }
   async->cb = cb;
   async->pending = 0;
-  return _rtev_watcher_start(w);
+  return _rtev_watcher_pending(w);
 }
 
 int rtev_async_send(rtev_async_t *async) {
   cmpxchgi(&async->ctx->async_pending, 0 , 1);
   if (cmpxchgi(&async->pending, 0, 1) == 0) {
-    pthread_mutex_lock(&async->ctx->async_mutex);
+    pthread_mutex_lock(&async->ctx->async_lock);
     pthread_cond_signal(&async->ctx->async_cond);
-    pthread_mutex_unlock(&async->ctx->async_mutex);
+    pthread_mutex_unlock(&async->ctx->async_lock);
   }
   return 0;
 }

@@ -7,22 +7,22 @@
 const rtnode_native_module_t native_modules[] = {
   { 
     .type = JS_NATIVE_GLOBAL,
-    .fn.global = js_init_require,
+    .fn.global = rtnode_init_require,
     .name = "require"
   },
   { 
     .type = JS_NATIVE_BINDING,
-    .fn.global = js_init_process,
+    .fn.global = rtnode_init_process,
     .name = "process"
   },
   { 
     .type = JS_NATIVE_BINDING,
-    .fn.binding = js_init_console,
+    .fn.binding = rtnode_init_console,
     .name = "console"
   },
   { 
     .type = JS_NATIVE_BINDING,
-    .fn.binding = js_init_timer,
+    .fn.binding = rtnode_init_timer,
     .name = "timers"
   }
 };

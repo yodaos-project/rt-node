@@ -1,5 +1,5 @@
-#ifndef _JS_NATIVE_H_
-#define _JS_NATIVE_H_
+#ifndef _RTNODE_NATIVE_H_
+#define _RTNODE_NATIVE_H_
 
 #include "rt-node.h"
 
@@ -27,4 +27,4 @@ typedef struct {
 extern const rtnode_native_module_t native_modules[];
 extern const size_t native_modules_size;
 
-#endif // _JS_NATIVE_H_
+#endif // _RTNODE_NATIVE_H_

@@ -12,7 +12,14 @@
 #define FN_CALLOC(c, s) calloc(c, s + sizeof(extra_memory_t))
 #endif
 
-rtnode_context_t *js_ctx = NULL;
+rtnode_context_t *rtnode_ctx = NULL;
+
+rtnode_context_t *rtnode_get_context() {
+  if (rtnode_ctx) {
+    rtnode_ctx = (rtnode_context_t *) rtnode_malloc(sizeof(rtnode_context_t));
+  }
+  return rtnode_ctx;
+}
 
 typedef struct {
   size_t size;

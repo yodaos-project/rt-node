@@ -15,7 +15,7 @@ RTNODE_FUNCTION(timer_start) {
   uint64_t timeout = (uint64_t) rtnode_object_to_number(jargv[0]);
   uint64_t repeat = (uint64_t) rtnode_object_to_number(jargv[1]);
   int r = rtev_timer_start(
-    js_ctx->rtev,
+    rtnode_get_context()->rtev,
     timer,
     timeout,
     repeat,
@@ -37,7 +37,7 @@ RTNODE_FUNCTION(timer_constructor) {
   return jerry_create_undefined();
 }
 
-jerry_value_t js_init_timer() {
+jerry_value_t rtnode_init_timer() {
   jerry_value_t jtimer = jerry_create_external_function(timer_constructor);
   jerry_value_t jprototype = jerry_create_object();
   rtnode_object_set_property(jtimer, "prototype", jprototype);
