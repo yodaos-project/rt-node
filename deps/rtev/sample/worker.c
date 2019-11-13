@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
   printf("main thread start %u\n", (uint32_t) pthread_self());
   rtev_ctx_t ctx;
   rtev_ctx_init(&ctx);
-  for (int i = 0; i < 2; ++i) {
+  for (int i = 0; i < 3; ++i) {
     rtev_worker_t *worker = (rtev_worker_t *) rtev_malloc(sizeof(rtev_worker_t));
     worker->data = (void *) (intptr_t) i;
     rtev_worker_start(&ctx, worker, on_work, on_done, on_close);

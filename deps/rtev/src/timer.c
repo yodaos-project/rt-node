@@ -1,5 +1,4 @@
 #include "rtev.h"
-#include "atomic-ops.h"
 
 void _rtev_update_time(rtev_ctx_t *ctx) {
   struct timespec spec;

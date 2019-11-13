@@ -5,7 +5,7 @@ static void _rtev_worker_on_async(rtev_async_t *async) {
   pthread_mutex_lock(&async->ctx->worker_done_lock);
   QUEUE_MOVE(&async->ctx->worker_done_queue,&wq);
   pthread_mutex_lock(&async->ctx->worker_lock);
-  if (QUEUE_EMPTY(&async->ctx->worker_queue)) {
+  if (async->ctx->worker_count == 0) {
     rtev_async_close(async->ctx->worker_async);
   }
   pthread_mutex_unlock(&async->ctx->worker_lock);
@@ -59,8 +59,10 @@ static void* _rtev_worker_run(void *data) {
     pthread_mutex_lock(&ctx->worker_done_lock);
     QUEUE_INSERT_TAIL(&ctx->worker_done_queue, &worker->node);
     pthread_mutex_unlock(&ctx->worker_done_lock);
-    rtev_async_send(ctx->worker_async);
     pthread_mutex_lock(&ctx->worker_lock);
+    RTEV_ASSERT(ctx->worker_count > 0, "invalid worker count");
+    --ctx->worker_count;
+    rtev_async_send(ctx->worker_async);
   }
   return NULL;
 }
@@ -96,11 +98,6 @@ int rtev_worker_start(rtev_ctx_t *ctx, rtev_worker_t *worker, rtev_worker_cb cb,
   worker->cb = cb;
   worker->done_cb = done_cb;
   worker->pending = 0;
-  pthread_mutex_lock(&ctx->worker_lock);
-  QUEUE_INIT(&worker->node);
-  QUEUE_INSERT_TAIL(&ctx->worker_queue, &worker->node);
-  pthread_cond_signal(&ctx->worker_cond);
-  pthread_mutex_unlock(&ctx->worker_lock);
   return _rtev_watcher_pending(w);
 }
 

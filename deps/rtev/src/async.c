@@ -14,6 +14,7 @@ int rtev_async_start(rtev_ctx_t *ctx, rtev_async_t *async,
 }
 
 int rtev_async_send(rtev_async_t *async) {
+  RTEV_ASSERT(async->state == RTEV_STATE_RUNNING, "invalid async state");
   cmpxchgi(&async->ctx->async_pending, 0 , 1);
   if (cmpxchgi(&async->pending, 0, 1) == 0) {
     pthread_mutex_lock(&async->ctx->async_lock);

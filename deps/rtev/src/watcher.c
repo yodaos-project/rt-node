@@ -92,7 +92,12 @@ void _rtev_add_pending_watchers(rtev_ctx_t *ctx) {
     } else if (watcher->type == RTEV_TYPE_TICK) {
       QUEUE_INSERT_TAIL(&ctx->tick_queue, &watcher->node);
     } else if (watcher->type == RTEV_TYPE_WORKER) {
+      pthread_mutex_lock(&ctx->worker_lock);
+      ++ctx->worker_count;
+      QUEUE_INIT(&watcher->node);
       QUEUE_INSERT_TAIL(&ctx->worker_queue, &watcher->node);
+      pthread_cond_signal(&ctx->worker_cond);
+      pthread_mutex_unlock(&ctx->worker_lock);
     } else {
       RTEV_ASSERT(0, "unknown watcher type");
     }
@@ -109,6 +114,7 @@ void _rtev_close_watchers(rtev_ctx_t *ctx) {
     QUEUE_REMOVE(&watcher->node);
     QUEUE_INIT(&watcher->node);
     watcher->state = RTEV_STATE_CLOSED;
+    RTEV_ASSERT(ctx->watcher_count > 0, "invalid watcher count");
     --ctx->watcher_count;
     if (watcher->close_cb) {
       watcher->close_cb(watcher);

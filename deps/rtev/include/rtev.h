@@ -11,6 +11,7 @@
 #include <string.h>
 #include <errno.h>
 #include "queue.h"
+#include "atomic-ops.h"
 
 #ifdef __FREERTOS__
 #include "freertos/FreeRTOS.h"
@@ -61,6 +62,7 @@ struct rtev_ctx_t {
   QUEUE async_queue;
   QUEUE tick_queue;
   QUEUE worker_queue;
+  int worker_count;
   pthread_mutex_t worker_lock;
   pthread_cond_t worker_cond;
   rtev_async_t *worker_async;
@@ -68,7 +70,7 @@ struct rtev_ctx_t {
   pthread_mutex_t worker_done_lock;
   rtev_watcher_t *closing_watchers;
   rtev_watcher_t *pending_watchers;
-  uint64_t watcher_count;
+  int watcher_count;
   uint64_t time;          // in ms
   pthread_mutex_t async_lock;
   pthread_cond_t async_cond;

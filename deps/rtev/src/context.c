@@ -3,7 +3,7 @@
 void _rtev_set_next_timeout(rtev_ctx_t *ctx, struct timespec *spec) {
   spec->tv_sec = 0;
   spec->tv_nsec = 0;
-  if (!QUEUE_EMPTY(&ctx->worker_done_queue)) {
+  if (cmpxchgi(&ctx->async_pending, 1, 0) == 1) {
     return;
   }
   if (ctx->closing_watchers) {
@@ -47,6 +47,7 @@ int rtev_ctx_init(rtev_ctx_t *ctx) {
   pthread_mutex_init(&ctx->worker_done_lock, NULL);
   pthread_mutex_init(&ctx->worker_lock, NULL);
   pthread_cond_init(&ctx->worker_cond, NULL);
+  ctx->worker_count = 0;
   ctx->worker_async = (rtev_async_t *) rtev_malloc(sizeof(rtev_async_t));
   ctx->watcher_count = 0;
   pthread_mutex_init(&ctx->async_lock, NULL);
@@ -88,11 +89,12 @@ int rtev_ctx_loop(rtev_ctx_t *ctx, rtev_run_type_t type) {
 #endif
     RTEV_ASSERT(r != 0 || r != ETIMEDOUT, "unexpected time wait error");
     pthread_mutex_unlock(&ctx->async_lock);
-    printf("loop end\n");
+    printf("tick end\n");
     _rtev_run_async(ctx);
     _rtev_run_ticks(ctx);
     _rtev_close_watchers(ctx);
   }
+  printf("loop finish\n");
 
 #define RTEV_CHECK_QUEUE(name) \
   RTEV_ASSERT(QUEUE_EMPTY(&ctx->name), "ctx->" #name " is not empty");
