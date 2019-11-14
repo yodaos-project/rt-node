@@ -33,14 +33,14 @@ set(SRC_LIST
   ${CMAKE_SOURCE_DIR}/src/modules/rtnode-module-require.c
   ${CMAKE_SOURCE_DIR}/src/modules/rtnode-module-timer.c
   ${CMAKE_SOURCE_DIR}/src/napi/node_api.c
-  #  src/napi/node_api_async.c
+  ${CMAKE_SOURCE_DIR}/src/napi/node_api_async.c
   ${CMAKE_SOURCE_DIR}/src/napi/node_api_env.c
   ${CMAKE_SOURCE_DIR}/src/napi/node_api_function.c
   ${CMAKE_SOURCE_DIR}/src/napi/node_api_lifetime.c
   ${CMAKE_SOURCE_DIR}/src/napi/node_api_module.c
   ${CMAKE_SOURCE_DIR}/src/napi/node_api_object_wrap.c
   ${CMAKE_SOURCE_DIR}/src/napi/node_api_property.c
-  #  src/napi/node_api_tsfn.c
+  ${CMAKE_SOURCE_DIR}/src/napi/node_api_tsfn.c
   ${CMAKE_SOURCE_DIR}/src/napi/node_api_value.c
   )
 

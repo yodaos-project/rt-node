@@ -15,7 +15,7 @@
 rtnode_context_t *rtnode_ctx = NULL;
 
 rtnode_context_t *rtnode_get_context() {
-  if (rtnode_ctx) {
+  if (!rtnode_ctx) {
     rtnode_ctx = (rtnode_context_t *) rtnode_malloc(sizeof(rtnode_context_t));
   }
   return rtnode_ctx;

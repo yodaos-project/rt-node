@@ -47,7 +47,7 @@ static void _rtev_goto_sleep(rtev_ctx_t *ctx) {
 #if defined(__APPLE__) && defined(__MACH__)
     pthread_cond_timedwait_relative_np(cond, lock, &next_time);
 #else
-    pthread_cond_timedwait(cond, lock, next_time);
+    pthread_cond_timedwait(cond, lock, &next_time);
 #endif
   }
   pthread_mutex_unlock(&ctx->async_lock);
