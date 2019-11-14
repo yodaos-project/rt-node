@@ -36,11 +36,14 @@ void _rtev_run_done_async(rtev_ctx_t *ctx) {
   ctx->done_asyncs = NULL;
   pthread_mutex_unlock(&ctx->async_lock);
 
+  rtev_async_t *a;
   while (async != NULL) {
     if (async->state == RTEV_STATE_RUNNING) {
       async->cb(async);
     }
-    async = (rtev_async_t *) async->next_watcher;
+    a = (rtev_async_t *) async->next_watcher;
+    async->next_watcher = NULL;
+    async = a;
   }
 }
 

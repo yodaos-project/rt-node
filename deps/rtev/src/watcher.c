@@ -18,10 +18,6 @@ static void _rtev_remove_watcher_from_link(rtev_watcher_t *watcher,
 
 int _rtev_watcher_init(rtev_ctx_t *ctx, rtev_watcher_t *watcher,
   rtev_watcher_type_t type, rtev_close_cb close_cb) {
-  if (watcher->state == RTEV_STATE_PENDING
-    || watcher->state == RTEV_STATE_RUNNING) {
-    return EEXIST;
-  }
   if (watcher->state == RTEV_STATE_CLOSING) {
     _rtev_remove_watcher_from_link(watcher, &watcher->ctx->closing_watchers);
   }
