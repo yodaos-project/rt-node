@@ -87,6 +87,7 @@ int rtev_ctx_init(rtev_ctx_t *ctx) {
 #endif
   ctx->closing_watchers = NULL;
   ctx->pending_watchers = NULL;
+  _rtev_update_time(ctx);
   return 0;
 }
 

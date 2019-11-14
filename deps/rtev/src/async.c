@@ -12,7 +12,8 @@ int rtev_async_start(rtev_ctx_t *ctx, rtev_async_t *async,
 }
 
 int rtev_async_send(rtev_async_t *async) {
-  RTEV_ASSERT(async->state == RTEV_STATE_RUNNING, "invalid async state");
+  RTEV_ASSERT(async->state == RTEV_STATE_RUNNING ||
+    async->state == RTEV_STATE_PENDING, "invalid async state");
   pthread_mutex_lock(&async->ctx->async_lock);
   rtev_watcher_t **a = (rtev_watcher_t **) &async->ctx->done_asyncs;
   while (*a) {
