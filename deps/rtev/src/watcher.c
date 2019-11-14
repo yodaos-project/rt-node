@@ -3,7 +3,7 @@
 static void _rtev_remove_watcher_from_link(rtev_watcher_t *watcher,
                                            rtev_watcher_t **head) {
   while (*head) {
-    if ((*head) == watcher) {
+    if (*head == watcher) {
       *head = NULL;
       break;
     }
@@ -37,6 +37,7 @@ int _rtev_watcher_init(rtev_ctx_t *ctx, rtev_watcher_t *watcher,
 int _rtev_watcher_pending(rtev_watcher_t *watcher) {
   RTEV_ASSERT(watcher->ctx, "watcher is not inited");
   RTEV_ASSERT(watcher->state == RTEV_STATE_PENDING, "watcher is not pending");
+  RTEV_ASSERT(!watcher->next_watcher, "watcher pending link error");
   rtev_watcher_t **pending_watcher = &watcher->ctx->pending_watchers;
   while (*pending_watcher) {
     RTEV_ASSERT(*pending_watcher != watcher, "duplicate pending watcher");
@@ -49,11 +50,12 @@ int _rtev_watcher_pending(rtev_watcher_t *watcher) {
 }
 
 int _rtev_watcher_close(rtev_watcher_t *watcher) {
-  RTEV_ASSERT(watcher->state == RTEV_STATE_PENDING ||
-    watcher->state == RTEV_STATE_RUNNING, "watcher is not valid");
   if (watcher->state == RTEV_STATE_PENDING) {
     _rtev_remove_watcher_from_link(watcher, &watcher->ctx->pending_watchers);
+  } else if (watcher->state != RTEV_STATE_RUNNING) {
+    RTEV_ASSERT(0, "watcher state is invalid");
   }
+  RTEV_ASSERT(!watcher->next_watcher, "watcher close link error");
   watcher->state = RTEV_STATE_CLOSING;
   rtev_watcher_t **last_watcher = &watcher->ctx->closing_watchers;
   while (*last_watcher) {
@@ -130,6 +132,8 @@ int rtev_watcher_close(rtev_watcher_t *watcher) {
     return rtev_async_close((rtev_async_t *) watcher);
   case RTEV_TYPE_TICK:
     return rtev_tick_close((rtev_tick_t *) watcher);
+  case RTEV_TYPE_WORKER:
+    return rtev_worker_close((rtev_worker_t *) watcher);
   default:
     RTEV_ASSERT(0, "unknown watcher type");
   }

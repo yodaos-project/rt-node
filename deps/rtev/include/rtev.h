@@ -60,21 +60,18 @@ struct rtev_ctx_t {
   bool is_running;
   QUEUE timer_queue;
   QUEUE async_queue;
+  rtev_async_t *done_asyncs;
   QUEUE tick_queue;
   QUEUE worker_queue;
   int worker_count;
   pthread_mutex_t worker_lock;
   pthread_cond_t worker_cond;
-  rtev_async_t *worker_async;
-  QUEUE worker_done_queue;
-  pthread_mutex_t worker_done_lock;
   rtev_watcher_t *closing_watchers;
   rtev_watcher_t *pending_watchers;
   int watcher_count;
   uint64_t time;          // in ms
   pthread_mutex_t async_lock;
   pthread_cond_t async_cond;
-  int async_pending;
 };
 
 // watcher close callback
@@ -110,7 +107,6 @@ struct rtev_timer_t {
 typedef void (*rtev_async_cb)(rtev_async_t *async);
 struct rtev_async_t {
   RTEV_WATCHER_FIELDS;
-  int pending;
   rtev_async_cb cb;       // run in main thread
 };
 
@@ -124,9 +120,10 @@ struct rtev_tick_t {
 typedef void (*rtev_worker_cb)(rtev_worker_t *worker);
 struct rtev_worker_t {
   RTEV_WATCHER_FIELDS;
-  int pending;
+  rtev_async_t *async;
   rtev_worker_cb cb;
   rtev_worker_cb done_cb;
+  rtev_close_cb user_close_cb;
 };
 
 // core fn start
@@ -173,7 +170,7 @@ void _rtev_close_watchers(rtev_ctx_t *ctx);
 void _rtev_update_time(rtev_ctx_t *ctx);
 void _rtev_threadpool_init(rtev_ctx_t *ctx);
 void _rtev_threadpool_stop(rtev_ctx_t *ctx);
-void _rtev_run_async(rtev_ctx_t *ctx);
+void _rtev_run_done_async(rtev_ctx_t *ctx);
 void _rtev_run_timers(rtev_ctx_t *ctx);
 void _rtev_run_ticks(rtev_ctx_t *ctx);
 

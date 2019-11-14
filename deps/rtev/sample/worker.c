@@ -1,14 +1,15 @@
 #include <atomic-ops.h>
 #include "rtev.h"
 
-void on_work(rtev_worker_t *async) {
-  printf("%d work, %u\n", (int) (intptr_t) async->data, (uint32_t) pthread_self());
+void on_work(rtev_worker_t *worker) {
+  printf("%d work, %u\n", (int) (intptr_t) worker->data, (uint32_t) pthread_self());
   sleep(2);
-  printf("%d worked, %u\n", (int) (intptr_t) async->data, (uint32_t) pthread_self());
+  printf("%d worked, %u\n", (int) (intptr_t) worker->data, (uint32_t) pthread_self());
 }
 
-void on_done(rtev_worker_t *watcher) {
-  printf("%d done, %u\n", (int) (intptr_t) watcher->data, (uint32_t) pthread_self());
+void on_done(rtev_worker_t *worker) {
+  printf("%d done, %u\n", (int) (intptr_t) worker->data, (uint32_t) pthread_self());
+  rtev_worker_close(worker);
 }
 
 void on_close(rtev_watcher_t *watcher) {

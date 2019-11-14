@@ -1,5 +1,4 @@
 #include "rtev.h"
-#include "atomic-ops.h"
 
 int rtev_async_start(rtev_ctx_t *ctx, rtev_async_t *async,
   rtev_async_cb cb, rtev_close_cb close_cb) {
@@ -9,35 +8,40 @@ int rtev_async_start(rtev_ctx_t *ctx, rtev_async_t *async,
     return r;
   }
   async->cb = cb;
-  async->pending = 0;
   return _rtev_watcher_pending(w);
 }
 
 int rtev_async_send(rtev_async_t *async) {
   RTEV_ASSERT(async->state == RTEV_STATE_RUNNING, "invalid async state");
-  cmpxchgi(&async->ctx->async_pending, 0 , 1);
-  if (cmpxchgi(&async->pending, 0, 1) == 0) {
-    pthread_mutex_lock(&async->ctx->async_lock);
-    pthread_cond_signal(&async->ctx->async_cond);
-    pthread_mutex_unlock(&async->ctx->async_lock);
+  pthread_mutex_lock(&async->ctx->async_lock);
+  rtev_watcher_t **a = (rtev_watcher_t **) &async->ctx->done_asyncs;
+  while (*a) {
+    if (*a == (rtev_watcher_t *) async) {
+      break;
+    }
+    a = &(*a)->next_watcher;
   }
+  if (!*a) {
+    *a = (rtev_watcher_t *) async;
+  }
+  pthread_cond_signal(&async->ctx->async_cond);
+  pthread_mutex_unlock(&async->ctx->async_lock);
   return 0;
 }
 
-void _rtev_run_async(rtev_ctx_t *ctx) {
-  QUEUE *q;
-  rtev_async_t *a;
-  QUEUE_FOREACH(q, &ctx->async_queue) {
-    a = QUEUE_DATA(q, rtev_async_t, node);
-    if (a->state != RTEV_STATE_RUNNING) {
-      continue;
+void _rtev_run_done_async(rtev_ctx_t *ctx) {
+  rtev_async_t *async;
+  pthread_mutex_lock(&ctx->async_lock);
+  async = ctx->done_asyncs;
+  ctx->done_asyncs = NULL;
+  pthread_mutex_unlock(&ctx->async_lock);
+
+  while (async != NULL) {
+    if (async->state == RTEV_STATE_RUNNING) {
+      async->cb(async);
     }
-    if (cmpxchgi(&a->pending, 1, 0) == 0) {
-      continue;
-    }
-    a->cb(a);
+    async = (rtev_async_t *) async->next_watcher;
   }
-  cmpxchgi(&ctx->async_pending, 1, 0);
 }
 
 int rtev_async_close(rtev_async_t *async) {

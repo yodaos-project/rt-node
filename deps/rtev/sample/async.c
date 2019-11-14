@@ -12,7 +12,7 @@ void on_close(rtev_watcher_t *watcher) {
 void* on_thread(void *data) {
   printf("thread start, %u\n", (uint32_t) pthread_self());
   rtev_async_t *async = (rtev_async_t *) data;
-  sleep(3);
+  sleep(1);
   rtev_async_send(async);
   printf("thread end %u\n", (uint32_t) pthread_self());
   return NULL;
