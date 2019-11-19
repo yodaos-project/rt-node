@@ -82,7 +82,7 @@ int rtev_ctx_init(rtev_ctx_t *ctx) {
 #endif
   pthread_cond_init(&ctx->async_cond, &cond_attr);
   // FIXME: link error in esp-idf
-#ifndef __FREERTOS__
+#ifndef __ESP_IDF__
   pthread_condattr_destroy(&cond_attr);
 #endif
   ctx->closing_watchers = NULL;

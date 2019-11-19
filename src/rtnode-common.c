@@ -1,21 +1,9 @@
 #include "rt-node.h"
 
-#ifdef __FREERTOS__
-#include "freertos/FreeRTOS.h"
-#define MEM_FLAGS MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT
-#define FN_MALLOC(s) heap_caps_malloc(s + sizeof(extra_memory_t), MEM_FLAGS)
-#define FN_REALLOC(p, s) heap_caps_realloc(p, s + sizeof(extra_memory_t), MEM_FLAGS)
-#define FN_CALLOC(c, s) heap_caps_calloc(c, s + sizeof(extra_memory_t), MEM_FLAGS)
-#else
-#define FN_MALLOC(s) malloc(s + sizeof(extra_memory_t))
-#define FN_REALLOC(p, s) realloc(p, s + sizeof(extra_memory_t))
-#define FN_CALLOC(c, s) calloc(c, s + sizeof(extra_memory_t))
-#endif
-
 rtnode_context_t *rtnode_ctx = NULL;
 
 rtnode_context_t *rtnode_get_context() {
-  if (rtnode_ctx) {
+  if (!rtnode_ctx) {
     rtnode_ctx = (rtnode_context_t *) rtnode_malloc(sizeof(rtnode_context_t));
   }
   return rtnode_ctx;
@@ -27,6 +15,16 @@ typedef struct {
 
 static uint64_t mem_total = 0;
 static uint64_t alloc_count = 0;
+static rtnode_allocator_t allocator = {
+  .malloc_fn = malloc,
+  .realloc_fn = realloc,
+  .calloc_fn = calloc,
+  .free_fn = free
+};
+
+void rtnode_set_allocator(rtnode_allocator_t *a) {
+  allocator = *a;
+}
 
 static void* init_mem(void *ptr, size_t size) {
   mem_total += size;
@@ -54,14 +52,14 @@ void rtnode_free(void *ptr) {
 }
 
 void* rtnode_malloc(size_t size) {
-  void *ptr = FN_MALLOC(size);
+  void *ptr = allocator.malloc_fn(size + sizeof(extra_memory_t));
   RTNODE_ASSERT(ptr != NULL);
   return init_mem(ptr, size);
 }
 
 void* rtnode_realloc(void *ptr, size_t size) {
   void *old_ptr = ptr;
-  ptr = FN_REALLOC(ptr, size);
+  ptr = allocator.realloc_fn(ptr, size + sizeof(extra_memory_t));
   // ignore size == 0
   RTNODE_ASSERT(ptr != NULL);
   if (ptr != old_ptr && old_ptr != NULL) {
@@ -71,7 +69,7 @@ void* rtnode_realloc(void *ptr, size_t size) {
 }
 
 void* rtnode_calloc(size_t count, size_t size) {
-  void *ptr = FN_CALLOC(count, size);
+  void *ptr = allocator.calloc_fn(count, size + sizeof(extra_memory_t));
   RTNODE_ASSERT(ptr != NULL);
   return init_mem(ptr, size * count);
 }

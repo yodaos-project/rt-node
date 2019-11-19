@@ -17,25 +17,17 @@
 #include "internal/node_api_internal.h"
 #include "rtnode-module-process.h"
 
-static void rtnode_uv_work_cb(uv_work_t* req) {
+static void on_work(rtev_worker_t *req) {
   rtnode_async_work_t* async_work = (rtnode_async_work_t*)req->data;
-  RTNODE_ASSERT(async_work != NULL);
-  if (async_work->execute != NULL) {
+  if (async_work && async_work->execute != NULL) {
     async_work->execute(async_work->env, async_work->data);
   }
 }
 
-static void rtnode_uv_work_after_cb(uv_work_t* req, int status) {
+static void on_work_done(rtev_worker_t* req) {
   rtnode_async_work_t* async_work = (rtnode_async_work_t*)req->data;
   RTNODE_ASSERT(async_work != NULL);
-  napi_status cb_status;
-  if (status == 0) {
-    cb_status = napi_ok;
-  } else if (status == UV_ECANCELED) {
-    cb_status = napi_cancelled;
-  } else {
-    cb_status = napi_generic_failure;
-  }
+  napi_status cb_status = napi_ok;
 
   napi_env env = async_work->env;
   napi_async_complete_callback complete = async_work->complete;
@@ -59,12 +51,16 @@ static void rtnode_uv_work_after_cb(uv_work_t* req, int status) {
       }
 
       /** Argument cannot have error flag */
-      rtnode_uncaught_exception(jerry_get_value_from_error(jval_err, false));
+      rtnode_on_fatal_error(jerry_get_value_from_error(jval_err, false), NULL);
       jerry_release_value(jval_err);
     }
   }
 
   rtnode_run_next_tick();
+}
+
+static void on_work_close(rtev_watcher_t *worker) {
+  rtnode_free(worker);
 }
 
 napi_status napi_create_async_work(napi_env env, napi_value async_resource,
@@ -78,7 +74,7 @@ napi_status napi_create_async_work(napi_env env, napi_value async_resource,
   NAPI_WEAK_ASSERT(napi_invalid_arg, complete != NULL);
 
   rtnode_async_work_t* async_work = rtnode_malloc(sizeof(rtnode_async_work_t));
-  uv_work_t* work_req = &async_work->work_req;
+  rtev_worker_t* work_req = &async_work->work_req;
 
   async_work->env = env;
   async_work->async_resource = async_resource;
@@ -94,23 +90,16 @@ napi_status napi_create_async_work(napi_env env, napi_value async_resource,
 }
 
 napi_status napi_delete_async_work(napi_env env, napi_async_work work) {
-  NAPI_TRY_ENV(env);
-  uv_work_t* work_req = (uv_work_t*)work;
-  rtnode_async_work_t* async_work = (rtnode_async_work_t*)work_req->data;
-  js_free(async_work);
-  NAPI_RETURN(napi_ok);
+  return napi_cancel_async_work(env, work);
 }
 
 napi_status napi_queue_async_work(napi_env env, napi_async_work work) {
   NAPI_TRY_ENV(env);
-  rtnode_context_t *rtnode_ctx = rtnode_get_context();
-  rtnode_environment_t* rtnode_env = rtnode_environment_get();
-  uv_loop_t* loop = rtnode_environment_loop(rtnode_env);
+  rtev_ctx_t *ctx = rtnode_get_context()->rtev;
 
-  uv_work_t* work_req = (uv_work_t*)work;
+  rtev_worker_t* work_req = (rtev_worker_t*)work;
 
-  int status =
-      uv_queue_work(loop, work_req, rtnode_uv_work_cb, rtnode_uv_work_after_cb);
+  int status = rtev_worker_start(ctx, work_req, on_work, on_work_done, on_work_close);
   if (status != 0) {
     const char* err_name = strerror(status);
     NAPI_RETURN_WITH_MSG(napi_generic_failure, err_name);

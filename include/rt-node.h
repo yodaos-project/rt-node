@@ -68,15 +68,24 @@
 /* Avoid compiler warnings if needed. */
 #define RTNODE_UNUSED(x) ((void)(x))
 
-void rtnode_free(void *ptr);
+typedef struct {
+  void (*free_fn)(void *ptr);
+  void* (*malloc_fn)(size_t size);
+  void* (*realloc_fn)(void *ptr, size_t size);
+  void* (*calloc_fn)(size_t count, size_t size);
+} rtnode_allocator_t;
+
+void rtnode_set_allocator(rtnode_allocator_t *allocator);
+
+void rtnode_free(void* ptr);
 
 void* rtnode_malloc(size_t size);
 
-void* rtnode_realloc(void *ptr, size_t size);
+void* rtnode_realloc(void* ptr, size_t size);
 
 void* rtnode_calloc(size_t count, size_t size);
 
-void* rtnode_jerry_alloc(size_t size, void *cb_data);
+void* rtnode_jerry_alloc(size_t size, void* cb_data);
 
 uint64_t rtnode_get_memory_total();
 
@@ -84,10 +93,10 @@ uint64_t rtnode_get_memory_alloc_count();
 
 typedef struct {
   rtev_ctx_t *rtev;
-  jerry_context_t* jerry;
+  jerry_context_t *jerry;
 } rtnode_context_t;
 
-rtnode_context_t *rtnode_get_context();
+rtnode_context_t* rtnode_get_context();
 
 extern int rtnode_start();
 

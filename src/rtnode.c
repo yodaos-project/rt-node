@@ -8,7 +8,6 @@ int rtnode_start() {
   RTNODE_LOG_I("#####  rtnode start 🐒 #####");
   srand((unsigned)jerry_port_get_current_time());
   rtnode_context_t *rtnode_ctx = rtnode_get_context();
-  rtnode_ctx = (rtnode_context_t *) rtnode_malloc(sizeof(rtnode_context_t));
 
   rtnode_ctx->rtev = (rtev_ctx_t *) rtnode_malloc(sizeof(rtev_ctx_t));
   rtev_set_allocator(rtnode_malloc, rtnode_free);

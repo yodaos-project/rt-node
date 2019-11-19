@@ -13,10 +13,6 @@
 #include "queue.h"
 #include "atomic-ops.h"
 
-#ifdef __FREERTOS__
-#include "freertos/FreeRTOS.h"
-#endif
-
 #define RTEV_ASSERT(exp, reason)                                \
   do {                                                          \
     if (!(exp)) {                                               \
