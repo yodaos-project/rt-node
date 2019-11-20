@@ -13,7 +13,6 @@ The following runtime modules are built in:
 - N-API
 
 N-API is supported in order to be compatible with different embed JavaScript engines, the following N-API features are WIP:
-- async
 - thread safe function
 
 ## Dependencies
@@ -23,7 +22,7 @@ N-API is supported in order to be compatible with different embed JavaScript eng
 
 ## Example
 
-JavaScript sources are packaged in `src/js-snapshots.c/h`. Use `sh tools/js2c.sh` to package JavaScript Sources if the sources are changed.
+JavaScript sources are packaged in `src/rtnode-snapshots.c/h`. Use `sh tools/js2c.sh` to package JavaScript Sources if the sources are changed.
 
 `src/js/app.js` is the entry of JavaScript, here is an example:
 
@@ -54,25 +53,54 @@ timer.on('timeout', function (timeout) {
 
 ```
 
-## Build & Install
+## Build
 
-- unix like
-
-```shell
-$ cmake -B./build -H. -DPLATFORM=unix     # build for unix platforms
-$ make -C./build
-$ ./build/rtnode
-```
-
-- freeRTOS based
-
-Currently support esp-idf build framework.
+`rtnode` use [CMake](https://cmake.org) to build library or samples. The easiest way to build is as follows:
 
 ```shell
-$ cmake -B./build -H. -DPLATFORM=espidf
-$ make -C./build
-$ sh tools/esp_flash.sh -p $device_port
+$ cmake -B./build -H.
+$ make -C./build -j8
 ```
+
+The above commands will generate `librtnode.a` in `./build` directory.
+
+For cross compile, add the following flags:
+- CMAKE_C_COMPILER, full path for c compiler
+- CMAKE_SYSTEM_PROCESSOR, the name of the CPU CMake is building for
+- CMAKE_SYSTEM_NAME, set `Generic` to indicate cross compile
+
+here is an example for `Xtensa` toolchain:
+
+```shell
+$ cmake -B./build-xtensa -H. \
+  -DCMAKE_C_COMPILER=xtensa-esp32-elf-gcc \
+  -DCMAKE_SYSTEM_PROCESSOR=xtensa \
+  -DCMAKE_SYSTEM_NAME=Generic
+$ make -C./build-xtensa -j8
+```
+ 
+## Sample
+
+Currently support unix and esp-idf build framework.
+
+For unix like systems
+```shell
+$ cmake -B./build -H. -DSAMPLE=unix
+$ make -C./build
+$ ./build/rtnode-unix/rtnode-unix # run sample
+```
+
+For esp-idf:
+```shell
+$ cmake -B./build-espidf -H. \
+  -DCMAKE_C_COMPILER=xtensa-esp32-elf-gcc \
+  -DCMAKE_SYSTEM_PROCESSOR=xtensa \
+  -DCMAKE_SYSTEM_NAME=Generic \
+  -DSAMPLE=esp-idf
+$ make -C./build-espidf -j8
+```
+
+The esp-idf products will generate in `./build-espidf/rtnode-build`, then use `idf.py flash` to flash the binaries that you just built onto your ESP32 board. For more information, please refer to the [esp-idf document](https://docs.espressif.com/projects/esp-idf/en/latest/get-started/#step-9-flash-onto-the-device).
 
 ## LICENSE
 
