@@ -17,7 +17,7 @@
 #include "internal/node_api_internal.h"
 #include "process.h"
 
-static void on_work(rv_worker_t *req) {
+static void on_work(rv_worker_t* req) {
   js_async_work_t* async_work = (js_async_work_t*)req->data;
   if (async_work && async_work->execute != NULL) {
     async_work->execute(async_work->env, async_work->data);
@@ -59,7 +59,7 @@ static void on_work_done(rv_worker_t* req) {
   js_run_next_tick();
 }
 
-static void on_work_close(rv_watcher_t *worker) {
+static void on_work_close(rv_watcher_t* worker) {
   js_free(worker);
 }
 
@@ -95,11 +95,12 @@ napi_status napi_delete_async_work(napi_env env, napi_async_work work) {
 
 napi_status napi_queue_async_work(napi_env env, napi_async_work work) {
   NAPI_TRY_ENV(env);
-  rv_ctx_t *ctx = js_get_context()->rv;
+  rv_ctx_t* ctx = js_get_context()->rv;
 
   rv_worker_t* work_req = (rv_worker_t*)work;
 
-  int status = rv_worker_start(ctx, work_req, on_work, on_work_done, on_work_close);
+  int status =
+    rv_worker_start(ctx, work_req, on_work, on_work_done, on_work_close);
   if (status != 0) {
     const char* err_name = strerror(status);
     NAPI_RETURN_WITH_MSG(napi_generic_failure, err_name);

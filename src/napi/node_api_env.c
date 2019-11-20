@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-#include "js-common.h"
 #include <stdlib.h>
 #include "internal/node_api_internal.h"
+#include "js-common.h"
 
 #ifndef NAPI_FATAL_BACKTRACE_LEN
 #define NAPI_FATAL_BACKTRACE_LEN 10
@@ -25,7 +25,8 @@
 static const char* NAPI_GENERIC_ERROR_MESSAGE = "Unexpected error.";
 
 static js_napi_env_t current_env = {
-  .pending_exception = NULL, .pending_fatal_exception = NULL,
+  .pending_exception = NULL,
+  .pending_fatal_exception = NULL,
 };
 
 napi_env js_get_current_napi_env(void) {
@@ -49,7 +50,7 @@ bool js_napi_is_exception_pending(napi_env env) {
 }
 
 void js_napi_set_current_callback(napi_env env,
-                                     js_callback_info_t* callback_info) {
+                                  js_callback_info_t* callback_info) {
   js_napi_env_t* curr_env = (js_napi_env_t*)env;
   curr_env->current_callback_info = callback_info;
 }
@@ -60,9 +61,8 @@ js_callback_info_t* js_napi_get_current_callback(napi_env env) {
 }
 
 void js_napi_set_error_info(napi_env env, napi_status error_code,
-                               const char* error_message,
-                               uint32_t engine_error_code,
-                               void* engine_reserved) {
+                            const char* error_message,
+                            uint32_t engine_error_code, void* engine_reserved) {
   js_napi_env_t* cur_env = (js_napi_env_t*)env;
 
   if (error_message == NULL && error_code != napi_ok) {
@@ -132,7 +132,7 @@ static napi_status napi_throw_helper(jerry_error_t jerry_error_type,
   NAPI_TRY_NO_PENDING_EXCEPTION(env);
 
   jerry_value_t jval_error =
-      jerry_create_error(jerry_error_type, (jerry_char_t*)msg);
+    jerry_create_error(jerry_error_type, (jerry_char_t*)msg);
   if (code != NULL) {
     jval_error = jerry_get_value_from_error(jval_error, true);
     js_object_set_string(jval_error, "code", code);
@@ -201,7 +201,7 @@ napi_status napi_get_and_clear_last_exception(napi_env env,
   }
 
   jerry_value_t jval_err =
-      jerry_get_value_from_error(AS_JERRY_VALUE(error), true);
+    jerry_get_value_from_error(AS_JERRY_VALUE(error), true);
 
   NAPI_ASSIGN(result, AS_NAPI_VALUE(jval_err));
   /** should not clear last error info */
@@ -223,6 +223,6 @@ void napi_fatal_error(const char* location, size_t location_len,
   fprintf(stderr, "FATAL ERROR: %.*s, %.*s\n", location_len, location,
           message_len, message);
   // FIXME: print stack
-//  print_stacktrace();
+  //  print_stacktrace();
   abort();
 }

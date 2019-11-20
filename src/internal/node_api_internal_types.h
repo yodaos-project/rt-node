@@ -18,7 +18,7 @@
 #define JS_NODE_API_TYPES_H
 
 #include "jerryscript.h"
-//#include <uv.h>
+#include "js-common.h"
 #include "node_api.h"
 
 typedef void (*js_cleanup_hook_fn)(void* arg);
@@ -62,10 +62,10 @@ struct js_reference_s {
 };
 
 #define JS_OBJECT_INFO_FIELDS \
-  napi_env env;                  \
-  void* native_object;           \
-  napi_finalize finalize_cb;     \
-  void* finalize_hint;           \
+  napi_env env;               \
+  void* native_object;        \
+  napi_finalize finalize_cb;  \
+  void* finalize_hint;        \
   js_reference_t* ref_start;  \
   js_reference_t* ref_end;
 

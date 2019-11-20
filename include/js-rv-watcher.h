@@ -18,7 +18,7 @@
 
 #include "js-common.h"
 
-typedef void (*js_close_cb)(rv_watcher_t *);
+typedef void (*js_close_cb)(rv_watcher_t*);
 
 typedef struct {
   jerry_value_t jobject;
@@ -46,12 +46,10 @@ typedef struct {
  *  |----------------|
  *
  */
-void js_rv_watcher_bind(size_t watcher_size,
-                              const jerry_value_t jobject,
-                              const jerry_object_native_info_t *native,
-                              size_t extra_data_size,
-                              js_close_cb close_cb);
-int js_rv_watcher_close(rv_watcher_t *watcher);
+void js_rv_watcher_bind(size_t watcher_size, const jerry_value_t jobject,
+                        const jerry_object_native_info_t* native,
+                        size_t extra_data_size, js_close_cb close_cb);
+int js_rv_watcher_close(rv_watcher_t* watcher);
 
 /**
  * Returns a pointer to the watcher data struct referenced

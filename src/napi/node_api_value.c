@@ -14,24 +14,24 @@
  * limitations under the License.
  */
 
-#include "jerryscript-ext/handle-scope.h"
-#include "jerryscript.h"
 #include <stdlib.h>
 #include "internal/node_api_internal.h"
+#include "jerryscript-ext/handle-scope.h"
+#include "jerryscript.h"
 
 #include <math.h>
 
 /* Feature missing error messages */
 const char* const napi_err_no_dataview =
-    "DataView is not supported by this build.";
+  "DataView is not supported by this build.";
 const char* const napi_err_no_promise =
-    "Promise is not supported by this build.";
+  "Promise is not supported by this build.";
 const char* const napi_err_no_symbol =
-    "Symbols are not supported by this build.";
+  "Symbols are not supported by this build.";
 const char* const napi_err_no_typedarray =
-    "TypedArray is not supported by this build.";
+  "TypedArray is not supported by this build.";
 const char* const napi_err_invalid_deferred =
-    "Invalid deferred object. Please refer to the documentation.";
+  "Invalid deferred object. Please refer to the documentation.";
 
 static void js_napi_buffer_external_free_cb(void* native_p) {
   js_buffer_external_info_t* info = (js_buffer_external_info_t*)native_p;
@@ -108,11 +108,11 @@ napi_status napi_create_external_arraybuffer(napi_env env, void* external_data,
   }
 
   JERRYX_CREATE(jval_arrbuf, jerry_create_arraybuffer_external(
-                                 byte_length, external_data,
-                                 js_napi_arraybuffer_external_free_cb));
+                               byte_length, external_data,
+                               js_napi_arraybuffer_external_free_cb));
 
   js_object_info_t* info =
-      js_get_object_native_info(jval_arrbuf, sizeof(js_object_info_t));
+    js_get_object_native_info(jval_arrbuf, sizeof(js_object_info_t));
   info->env = env;
   info->native_object = external_data;
   info->finalize_hint = finalize_hint;
@@ -164,7 +164,7 @@ napi_status napi_create_typedarray(napi_env env, napi_typedarray_type type,
 }
 
 // FIXME: implement
-//napi_status napi_create_buffer(napi_env env, size_t size, void** data,
+// napi_status napi_create_buffer(napi_env env, size_t size, void** data,
 //                               napi_value* result) {
 //  NAPI_TRY_ENV(env);
 //  JERRYX_CREATE(jval_buf, js_bufferwrap_create_buffer(size));
@@ -176,7 +176,8 @@ napi_status napi_create_typedarray(napi_env env, napi_typedarray_type type,
 //}
 
 // FIXME: implement
-//napi_status napi_create_buffer_copy(napi_env env, size_t size, const void* data,
+// napi_status napi_create_buffer_copy(napi_env env, size_t size, const void*
+// data,
 //                                    void** result_data, napi_value* result) {
 //  NAPI_TRY_ENV(env);
 //  JERRYX_CREATE(jval_buf, js_bufferwrap_create_buffer(size));
@@ -232,7 +233,7 @@ napi_status napi_create_external(napi_env env, void* data,
   napi_value nval;
   NAPI_INTERNAL_CALL(napi_create_object(env, &nval));
   js_object_info_t* info =
-      (js_object_info_t*)js_malloc(sizeof(js_object_info_t));
+    (js_object_info_t*)js_malloc(sizeof(js_object_info_t));
   info->native_object = data;
   info->finalize_cb = finalize_cb;
   info->finalize_hint = finalize_hint;
@@ -245,7 +246,8 @@ napi_status napi_create_external(napi_env env, void* data,
 }
 
 // FIXME: implement
-//napi_status napi_create_external_buffer(napi_env env, size_t length, void* data,
+// napi_status napi_create_external_buffer(napi_env env, size_t length, void*
+// data,
 //                                        napi_finalize finalize_cb,
 //                                        void* finalize_hint,
 //                                        napi_value* result) {
@@ -293,7 +295,7 @@ static napi_status napi_create_error_helper(jerry_error_t jerry_error_type,
   jerry_size_t msg_size = jerry_get_utf8_string_size(jval_msg);
   jerry_char_t* raw_msg = js_calloc(msg_size + 1, sizeof(jerry_char_t));
   jerry_size_t written_size =
-      jerry_string_to_utf8_char_buffer(jval_msg, raw_msg, msg_size);
+    jerry_string_to_utf8_char_buffer(jval_msg, raw_msg, msg_size);
   NAPI_WEAK_ASSERT(napi_invalid_arg, written_size == msg_size);
   raw_msg[msg_size] = '\0';
 
@@ -435,7 +437,7 @@ napi_status napi_get_arraybuffer_info(napi_env env, napi_value arraybuffer,
 }
 
 // FIXME: implement
-//napi_status napi_get_buffer_info(napi_env env, napi_value value, void** data,
+// napi_status napi_get_buffer_info(napi_env env, napi_value value, void** data,
 //                                 size_t* length) {
 //  NAPI_TRY_ENV(env);
 //  jerry_value_t jval = AS_JERRY_VALUE(value);
@@ -589,7 +591,7 @@ napi_status napi_get_value_string_utf8(napi_env env, napi_value value,
   }
 
   jerry_size_t written_size =
-      jerry_string_to_utf8_char_buffer(jval, (jerry_char_t*)buf, bufsize);
+    jerry_string_to_utf8_char_buffer(jval, (jerry_char_t*)buf, bufsize);
   NAPI_WEAK_ASSERT_WITH_MSG(napi_generic_failure,
                             str_size == 0 || (bufsize > 0 && written_size != 0),
                             "Insufficient buffer not supported yet.");
@@ -706,7 +708,7 @@ DEF_NAPI_VALUE_IS(dataview);
 DEF_NAPI_VALUE_IS(typedarray);
 
 // FIXME: implement
-//napi_status napi_is_buffer(napi_env env, napi_value value, bool* result) {
+// napi_status napi_is_buffer(napi_env env, napi_value value, bool* result) {
 //  NAPI_TRY_ENV(env);
 //  jerry_value_t jval_global = jerry_get_global_object();
 //  jerry_value_t jval_buffer =
@@ -724,11 +726,10 @@ DEF_NAPI_VALUE_IS(typedarray);
 napi_status napi_is_error(napi_env env, napi_value value, bool* result) {
   NAPI_TRY_ENV(env);
   jerry_value_t jval_global = jerry_get_global_object();
-  jerry_value_t jval_error =
-      js_object_get_property(jval_global, "Error");
+  jerry_value_t jval_error = js_object_get_property(jval_global, "Error");
 
   napi_status status =
-      napi_instanceof(env, value, AS_NAPI_VALUE(jval_error), result);
+    napi_instanceof(env, value, AS_NAPI_VALUE(jval_error), result);
 
   jerry_release_value(jval_error);
   jerry_release_value(jval_global);
@@ -743,7 +744,7 @@ napi_status napi_instanceof(napi_env env, napi_value object,
   jerry_value_t jval_cons = AS_JERRY_VALUE(constructor);
 
   jerry_value_t is_instance =
-      jerry_binary_operation(JERRY_BIN_OP_INSTANCEOF, jval_object, jval_cons);
+    jerry_binary_operation(JERRY_BIN_OP_INSTANCEOF, jval_object, jval_cons);
   if (jerry_value_is_error(is_instance)) {
     jerry_release_value(is_instance);
     NAPI_ASSIGN(result, false);
@@ -761,7 +762,7 @@ napi_status napi_strict_equals(napi_env env, napi_value lhs, napi_value rhs,
   jerry_value_t jval_rhs = AS_JERRY_VALUE(rhs);
 
   jerry_value_t is_equal =
-      jerry_binary_operation(JERRY_BIN_OP_STRICT_EQUAL, jval_lhs, jval_rhs);
+    jerry_binary_operation(JERRY_BIN_OP_STRICT_EQUAL, jval_lhs, jval_rhs);
   if (jerry_value_is_error(is_equal)) {
     jerry_release_value(is_equal);
     NAPI_RETURN(napi_generic_failure);
@@ -804,8 +805,7 @@ napi_status napi_resolve_deferred(napi_env env, napi_deferred deferred,
 
   jerry_value_t promise = AS_JERRY_VALUE(*((napi_value*)deferred));
   jerry_value_t res =
-      jerry_resolve_or_reject_promise(promise, AS_JERRY_VALUE(resolution),
-                                      true);
+    jerry_resolve_or_reject_promise(promise, AS_JERRY_VALUE(resolution), true);
   jerry_release_value(promise);
   free(deferred);
   if (jerry_value_is_error(res)) {
@@ -828,8 +828,7 @@ napi_status napi_reject_deferred(napi_env env, napi_deferred deferred,
 
   jerry_value_t promise = AS_JERRY_VALUE(*((napi_value*)deferred));
   jerry_value_t res =
-      jerry_resolve_or_reject_promise(promise, AS_JERRY_VALUE(rejection),
-                                      false);
+    jerry_resolve_or_reject_promise(promise, AS_JERRY_VALUE(rejection), false);
   jerry_release_value(promise);
   free(deferred);
   if (jerry_value_is_error(res)) {

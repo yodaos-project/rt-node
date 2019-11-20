@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-#include "js-common.h"
-#include "jerryscript-ext/handle-scope.h"
 #include "internal/node_api_internal.h"
+#include "jerryscript-ext/handle-scope.h"
+#include "js-common.h"
 
 static napi_module* mod_pending;
 
@@ -29,7 +29,7 @@ int napi_module_init_pending(jerry_value_t* exports) {
   }
 
   napi_addon_register_func init =
-      (napi_addon_register_func)mod_pending->nm_register_func;
+    (napi_addon_register_func)mod_pending->nm_register_func;
 
   if (init == NULL) {
     return napi_module_no_nm_register_func;

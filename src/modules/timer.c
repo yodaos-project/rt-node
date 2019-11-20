@@ -12,15 +12,10 @@ static void on_timeout(rv_timer_t* timer) {
 
 JS_FUNCTION(timer_start) {
   JS_DECLARE_PTR(jthis, rv_timer_t, timer);
-  uint64_t timeout = (uint64_t) js_object_to_number(jargv[0]);
-  uint64_t repeat = (uint64_t) js_object_to_number(jargv[1]);
-  int r = rv_timer_start(
-    js_get_context()->rv,
-    timer,
-    timeout,
-    repeat,
-    on_timeout,
-    timer->close_cb);
+  uint64_t timeout = (uint64_t)js_object_to_number(jargv[0]);
+  uint64_t repeat = (uint64_t)js_object_to_number(jargv[1]);
+  int r = rv_timer_start(js_get_context()->rv, timer, timeout, repeat,
+                         on_timeout, timer->close_cb);
   return jerry_create_number(r);
 }
 

@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
-#include "jerryscript-ext/handle-scope.h"
-#include "jerryscript.h"
 #include <stdlib.h>
 #include "internal/node_api_internal.h"
+#include "jerryscript-ext/handle-scope.h"
+#include "jerryscript.h"
 #include "node_api.h"
 
-static jerry_value_t js_napi_function_handler(
-    const jerry_value_t func_obj, const jerry_value_t this_val,
-    const jerry_value_t args_p[], const jerry_length_t args_cnt) {
+static jerry_value_t js_napi_function_handler(const jerry_value_t func_obj,
+                                              const jerry_value_t this_val,
+                                              const jerry_value_t args_p[],
+                                              const jerry_length_t args_cnt) {
   js_function_info_t* function_info = (js_function_info_t*)
-      js_try_get_object_native_info(func_obj, sizeof(js_function_info_t));
+    js_try_get_object_native_info(func_obj, sizeof(js_function_info_t));
   JS_ASSERT(function_info != NULL);
 
   napi_env env = function_info->env;
@@ -44,7 +45,7 @@ static jerry_value_t js_napi_function_handler(
 
   js_napi_set_current_callback(env, callback_info);
   napi_value nvalue_ret =
-      function_info->cb(env, (napi_callback_info)callback_info);
+    function_info->cb(env, (napi_callback_info)callback_info);
   js_napi_set_current_callback(env, NULL);
   js_free(callback_info);
 
@@ -92,11 +93,12 @@ napi_status napi_create_function(napi_env env, const char* utf8name,
                                  napi_value* result) {
   NAPI_TRY_ENV(env);
   jerry_value_t jval_func =
-      jerry_create_external_function(js_napi_function_handler);
+    jerry_create_external_function(js_napi_function_handler);
   jerryx_create_handle(jval_func);
 
-  js_function_info_t* function_info = (js_function_info_t*)
-      js_get_object_native_info(jval_func, sizeof(js_function_info_t));
+  js_function_info_t* function_info =
+    (js_function_info_t*)js_get_object_native_info(jval_func,
+                                                   sizeof(js_function_info_t));
   function_info->env = env;
   function_info->cb = cb;
   function_info->data = data;
@@ -165,7 +167,7 @@ napi_status napi_get_new_target(napi_env env, napi_callback_info cbinfo,
   jerry_value_t jval_this = callback_info->jval_this;
   jerry_value_t jval_target = callback_info->jval_func;
   jerry_value_t is_instance =
-      jerry_binary_operation(JERRY_BIN_OP_INSTANCEOF, jval_this, jval_target);
+    jerry_binary_operation(JERRY_BIN_OP_INSTANCEOF, jval_this, jval_target);
   if (jerry_value_is_error(is_instance)) {
     jerry_release_value(is_instance);
     NAPI_ASSIGN(result, NULL);
@@ -173,8 +175,8 @@ napi_status napi_get_new_target(napi_env env, napi_callback_info cbinfo,
   }
 
   NAPI_ASSIGN(result, jerry_get_boolean_value(is_instance)
-                          ? AS_NAPI_VALUE(jval_target)
-                          : NULL);
+                        ? AS_NAPI_VALUE(jval_target)
+                        : NULL);
   NAPI_RETURN(napi_ok);
 }
 

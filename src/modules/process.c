@@ -38,8 +38,8 @@ JS_FUNCTION(memory_usage) {
 jerry_value_t js_init_process() {
   jerry_value_t jprocess = jerry_create_object();
   js_object_set_method(jprocess, "memoryUsage", memory_usage);
-  js_object_set_method(jprocess,
-                           "_on_uncaught_exception", on_uncaught_exception);
+  js_object_set_method(jprocess, "_on_uncaught_exception",
+                       on_uncaught_exception);
 
   return jprocess;
 }

@@ -15,8 +15,8 @@
 
 #include "js-rv-watcher.h"
 
-static void js_rv_watcher_close_processor(rv_watcher_t *watcher) {
-  js_rv_watcher_data *watcher_data = JS_RV_WATCHER_DATA(watcher);
+static void js_rv_watcher_close_processor(rv_watcher_t* watcher) {
+  js_rv_watcher_data* watcher_data = JS_RV_WATCHER_DATA(watcher);
 
   if (watcher_data->close_cb != NULL) {
     watcher_data->close_cb(watcher);
@@ -28,11 +28,9 @@ static void js_rv_watcher_close_processor(rv_watcher_t *watcher) {
   js_free(watcher);
 }
 
-void js_rv_watcher_bind(size_t watcher_size,
-                              const jerry_value_t jobject,
-                              const jerry_object_native_info_t *native,
-                              size_t extra_data_size,
-                              js_close_cb close_cb) {
+void js_rv_watcher_bind(size_t watcher_size, const jerry_value_t jobject,
+                        const jerry_object_native_info_t* native,
+                        size_t extra_data_size, js_close_cb close_cb) {
   JS_ASSERT(jerry_value_is_object(jobject));
 
   /* Make sure that the jerry_value_t is aligned */
@@ -40,7 +38,7 @@ void js_rv_watcher_bind(size_t watcher_size,
 
   char* request_memory = js_malloc(
     aligned_request_size + sizeof(js_rv_watcher_data) + extra_data_size);
-  rv_watcher_t *watcher = (rv_watcher_t *) request_memory;
+  rv_watcher_t* watcher = (rv_watcher_t*)request_memory;
   watcher->data = request_memory + aligned_request_size;
   watcher->close_cb = js_rv_watcher_close_processor;
 
@@ -51,9 +49,8 @@ void js_rv_watcher_bind(size_t watcher_size,
   jerry_set_object_native_pointer(jobject, watcher, native);
 }
 
-int js_rv_watcher_close(rv_watcher_t *watcher) {
-  if (watcher->state == RV_STATE_CLOSING ||
-    watcher->state == RV_STATE_CLOSED) {
+int js_rv_watcher_close(rv_watcher_t* watcher) {
+  if (watcher->state == RV_STATE_CLOSING || watcher->state == RV_STATE_CLOSED) {
     return 0;
   }
   return rv_watcher_close(watcher);

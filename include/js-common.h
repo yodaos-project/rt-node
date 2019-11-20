@@ -18,39 +18,41 @@
 #define TOSTRING(x) STRINGIFY(x)
 #endif /* TOSTRING */
 
-#define JS_ABORT() \
-  do { JS_LOG_E("abort message: %s:%d", __FILE__, __LINE__); abort(); } while (false)
+#define JS_ABORT()                                        \
+  do {                                                    \
+    JS_LOG_E("abort message: %s:%d", __FILE__, __LINE__); \
+    abort();                                              \
+  } while (false)
 
-#define JS_ASSERT(exp) \
-  do { \
-    if(!(exp)) { \
+#define JS_ASSERT(exp)                      \
+  do {                                      \
+    if (!(exp)) {                           \
       JS_LOG_E("assert message: %s", #exp); \
-      assert(0); \
-    } \
+      assert(0);                            \
+    }                                       \
   } while (false)
 
 #define JS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(name)                  \
-  static void js_##name##_destroy(js_##name##_t* wrap);              \
-  static const jerry_object_native_info_t this_module_native_info = {      \
+  static void js_##name##_destroy(js_##name##_t* wrap);                 \
+  static const jerry_object_native_info_t this_module_native_info = {   \
     .free_cb = (jerry_object_native_free_callback_t)js_##name##_destroy \
   }
 
 #define JS_CHECK_FATAL_ERROR(jobj, source) \
-  if (jerry_value_is_error(jobj)) { \
-    js_on_fatal_error(jobj, source); \
-    assert(0); \
+  if (jerry_value_is_error(jobj)) {        \
+    js_on_fatal_error(jobj, source);       \
+    assert(0);                             \
   }
 
 #define JS_CREATE_ERROR(TYPE, message) \
   jerry_create_error(JERRY_ERROR_##TYPE, (const jerry_char_t*)message)
 
-#define JS_DECLARE_PTR(JOBJ, TYPE, NAME)                              \
-  TYPE* NAME = NULL;                                                  \
-  do {                                                                \
-    if (!jerry_get_object_native_pointer(JOBJ, (void**)&NAME,         \
-                                         &native_info)) {             \
-      return JS_CREATE_ERROR(COMMON, "Internal");                     \
-    }                                                                 \
+#define JS_DECLARE_PTR(JOBJ, TYPE, NAME)                                       \
+  TYPE* NAME = NULL;                                                           \
+  do {                                                                         \
+    if (!jerry_get_object_native_pointer(JOBJ, (void**)&NAME, &native_info)) { \
+      return JS_CREATE_ERROR(COMMON, "Internal");                              \
+    }                                                                          \
   } while (0)
 
 #define JS_FUNCTION(name)                                \
@@ -69,13 +71,13 @@
 #define JS_UNUSED(x) ((void)(x))
 
 typedef struct {
-  void (*free_fn)(void *ptr);
+  void (*free_fn)(void* ptr);
   void* (*malloc_fn)(size_t size);
-  void* (*realloc_fn)(void *ptr, size_t size);
+  void* (*realloc_fn)(void* ptr, size_t size);
   void* (*calloc_fn)(size_t count, size_t size);
 } js_allocator_t;
 
-void js_set_allocator(js_allocator_t *allocator);
+void js_set_allocator(js_allocator_t* allocator);
 
 void js_free(void* ptr);
 
@@ -92,8 +94,8 @@ uint64_t js_get_memory_total();
 uint64_t js_get_memory_alloc_count();
 
 typedef struct {
-  rv_ctx_t *rv;
-  jerry_context_t *jerry;
+  rv_ctx_t* rv;
+  jerry_context_t* jerry;
 } js_context_t;
 
 js_context_t* js_get_context();

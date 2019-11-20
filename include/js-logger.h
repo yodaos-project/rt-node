@@ -20,9 +20,9 @@ typedef enum {
 extern "C" {
 #endif
 
-void js_do_log(js_log_level level, const char *fmt, ...);
+void js_do_log(js_log_level level, const char* fmt, ...);
 
-void js_set_logger_file_directory(const char *directory);
+void js_set_logger_file_directory(const char* directory);
 
 // default is verbose
 void js_set_logger_level(js_log_level level);

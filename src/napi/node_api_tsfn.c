@@ -17,7 +17,7 @@
 //#include "jerryscript.h"
 //#include "internal/node_api_internal.h"
 //
-//static void tsfn_async_close_cb(uv_handle_t* handle) {
+// static void tsfn_async_close_cb(uv_handle_t* handle) {
 //  js_threadsafe_function_t* tsfn =
 //      (js_threadsafe_function_t*)handle->data;
 //
@@ -33,7 +33,8 @@
 //
 //  thread_finalize_cb(env, thread_finalize_data, context);
 //  NAPI_ASSERT(tsfn->invocation_head == NULL,
-//              "TSFN invocation shall be cleared before closing async handle.");
+//              "TSFN invocation shall be cleared before closing async
+//              handle.");
 //
 //  jerry_release_value(AS_JERRY_VALUE(func));
 //  napi_async_destroy(env, async_context);
@@ -42,7 +43,7 @@
 //  js_free(tsfn);
 //}
 //
-//static void tsfn_async_callback(uv_async_t* handle) {
+// static void tsfn_async_callback(uv_async_t* handle) {
 //  js_threadsafe_function_t* tsfn =
 //      (js_threadsafe_function_t*)handle->data;
 //  uv_mutex_t* op_mutex = &tsfn->op_mutex;
@@ -98,7 +99,7 @@
 //  uv_mutex_unlock(op_mutex);
 //}
 //
-//napi_status napi_create_threadsafe_function(
+// napi_status napi_create_threadsafe_function(
 //    napi_env env, napi_value func, napi_value async_resource,
 //    napi_value async_resource_name, size_t max_queue_size,
 //    size_t initial_thread_count, void* thread_finalize_data,
@@ -169,7 +170,7 @@
 //  NAPI_ASSIGN(result, (napi_threadsafe_function)tsfn);
 //  NAPI_RETURN(napi_ok);
 //
-//clean:
+// clean:
 //  if (napi_async_inited) {
 //    napi_async_destroy(env, async_context);
 //  }
@@ -187,10 +188,12 @@
 //  }
 //  js_free(tsfn);
 //  NAPI_RETURN_WITH_MSG(napi_generic_failure,
-//                       "Unexpected error on napi_create_threadsafe_function.");
+//                       "Unexpected error on
+//                       napi_create_threadsafe_function.");
 //}
 //
-//napi_status napi_get_threadsafe_function_context(napi_threadsafe_function func,
+// napi_status napi_get_threadsafe_function_context(napi_threadsafe_function
+// func,
 //                                                 void** result) {
 //  js_threadsafe_function_t* tsfn = (js_threadsafe_function_t*)func;
 //  NAPI_ASSIGN(result, tsfn->context);
@@ -199,7 +202,7 @@
 //  return napi_ok;
 //}
 //
-//napi_status napi_call_threadsafe_function(
+// napi_status napi_call_threadsafe_function(
 //    napi_threadsafe_function func, void* data,
 //    napi_threadsafe_function_call_mode is_blocking) {
 //  js_threadsafe_function_t* tsfn = (js_threadsafe_function_t*)func;
@@ -245,12 +248,12 @@
 //
 //  uv_async_send(&tsfn->async_handle);
 //
-//clean:
+// clean:
 //  uv_mutex_unlock(&tsfn->op_mutex);
 //  return ret_status;
 //}
 //
-//napi_status napi_acquire_threadsafe_function(napi_threadsafe_function func) {
+// napi_status napi_acquire_threadsafe_function(napi_threadsafe_function func) {
 //  js_threadsafe_function_t* tsfn = (js_threadsafe_function_t*)func;
 //  uv_mutex_lock(&tsfn->op_mutex);
 //
@@ -260,8 +263,9 @@
 //  return napi_ok;
 //}
 //
-//napi_status napi_release_threadsafe_function(
-//    napi_threadsafe_function func, napi_threadsafe_function_release_mode mode) {
+// napi_status napi_release_threadsafe_function(
+//    napi_threadsafe_function func, napi_threadsafe_function_release_mode mode)
+//    {
 //  js_threadsafe_function_t* tsfn = (js_threadsafe_function_t*)func;
 //  uv_mutex_lock(&tsfn->op_mutex);
 //
@@ -295,7 +299,7 @@
 //  return napi_ok;
 //}
 //
-//napi_status napi_unref_threadsafe_function(napi_env env,
+// napi_status napi_unref_threadsafe_function(napi_env env,
 //                                           napi_threadsafe_function func) {
 //  NAPI_TRY_ENV(env);
 //  js_threadsafe_function_t* tsfn = (js_threadsafe_function_t*)func;
@@ -305,7 +309,7 @@
 //  NAPI_RETURN(napi_ok);
 //}
 //
-//napi_status napi_ref_threadsafe_function(napi_env env,
+// napi_status napi_ref_threadsafe_function(napi_env env,
 //                                         napi_threadsafe_function func) {
 //  NAPI_TRY_ENV(env);
 //  js_threadsafe_function_t* tsfn = (js_threadsafe_function_t*)func;

@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
+#include "internal/node_api_internal.h"
 #include "jerryscript-ext/handle-scope.h"
 #include "jerryscript.h"
-#include "internal/node_api_internal.h"
 
 static napi_node_version node_version = {
   .major = NODE_MAJOR_VERSION,
@@ -37,7 +37,7 @@ napi_status napi_get_version(napi_env env, uint32_t* result) {
 }
 
 // FIXME: implement this function
-//napi_status napi_get_uv_event_loop(napi_env env, uv_loop_t** loop) {
+// napi_status napi_get_uv_event_loop(napi_env env, uv_loop_t** loop) {
 //  NAPI_TRY_ENV(env);
 //  js_environment_t* js_env = js_environment_get();
 //  uv_loop_t* js_loop = js_environment_loop(js_env);

@@ -1,14 +1,14 @@
 #include "console.h"
 
 JS_FUNCTION(print_stdout) {
-  char *str = js_object_to_string(jargv[0]);
+  char* str = js_object_to_string(jargv[0]);
   JS_LOG_I("🤩  %s", str);
   js_free(str);
   return jerry_create_undefined();
 }
 
 JS_FUNCTION(print_stderr) {
-  char *str = js_object_to_string(jargv[0]);
+  char* str = js_object_to_string(jargv[0]);
   JS_LOG_E("❌ %s", str);
   js_free(str);
   return jerry_create_undefined();

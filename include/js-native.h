@@ -3,8 +3,8 @@
 
 #include "js-common.h"
 
-typedef void (*js_builtin_fn)(jerry_value_t jexports,
-  jerry_value_t jmodule, const char *filename);
+typedef void (*js_builtin_fn)(jerry_value_t jexports, jerry_value_t jmodule,
+                              const char* filename);
 typedef jerry_value_t (*js_global_fn)();
 typedef jerry_value_t (*js_binding_fn)();
 
@@ -18,10 +18,10 @@ typedef struct {
   enum js_native_module_type type;
   union {
     js_builtin_fn builtin; // require(name).fn
-    js_global_fn global; // global.fn
+    js_global_fn global;   // global.fn
     js_binding_fn binding; // native.fn
   } fn;
-  const char *name;
+  const char* name;
 } js_native_module_t;
 
 extern const js_native_module_t native_modules[];

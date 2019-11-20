@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
+#include "internal/node_api_internal.h"
 #include "jerryscript-ext/handle-scope.h"
 #include "jerryscript.h"
-#include "internal/node_api_internal.h"
 
 #include <stdlib.h>
 
@@ -122,9 +122,9 @@ napi_status napi_set_named_property(napi_env env, napi_value object,
   NAPI_TRY_TYPE(object, jval_object);
 
   jerry_value_t jval_key =
-      jerry_create_string_from_utf8((jerry_char_t*)utf8Name);
+    jerry_create_string_from_utf8((jerry_char_t*)utf8Name);
   napi_status status =
-      napi_set_property(env, object, AS_NAPI_VALUE(jval_key), value);
+    napi_set_property(env, object, AS_NAPI_VALUE(jval_key), value);
   jerry_release_value(jval_key);
   return status;
 }
@@ -136,9 +136,9 @@ napi_status napi_get_named_property(napi_env env, napi_value object,
   NAPI_TRY_TYPE(object, jval_object);
 
   jerry_value_t jval_key =
-      jerry_create_string_from_utf8((jerry_char_t*)utf8Name);
+    jerry_create_string_from_utf8((jerry_char_t*)utf8Name);
   napi_status status =
-      napi_get_property(env, object, AS_NAPI_VALUE(jval_key), result);
+    napi_get_property(env, object, AS_NAPI_VALUE(jval_key), result);
   jerry_release_value(jval_key);
   return status;
 }
@@ -150,9 +150,9 @@ napi_status napi_has_named_property(napi_env env, napi_value object,
   NAPI_TRY_TYPE(object, jval_object);
 
   jerry_value_t jval_key =
-      jerry_create_string_from_utf8((jerry_char_t*)utf8Name);
+    jerry_create_string_from_utf8((jerry_char_t*)utf8Name);
   napi_status status =
-      napi_has_property(env, object, AS_NAPI_VALUE(jval_key), result);
+    napi_has_property(env, object, AS_NAPI_VALUE(jval_key), result);
   jerry_release_value(jval_key);
   return status;
 }
@@ -223,8 +223,8 @@ napi_status napi_delete_element(napi_env env, napi_value object, uint32_t index,
 }
 
 napi_status js_napi_prop_desc_to_jdesc(napi_env env,
-                                          const napi_property_descriptor* ndesc,
-                                          jerry_property_descriptor_t* jdesc) {
+                                       const napi_property_descriptor* ndesc,
+                                       jerry_property_descriptor_t* jdesc) {
   napi_status status;
 
   if (ndesc->attributes & napi_configurable) {
@@ -303,7 +303,7 @@ napi_status napi_define_properties(napi_env env, napi_value object,
     jerry_value_t jval_prop_name;
     if (prop.utf8name != NULL) {
       jval_prop_name =
-          jerry_create_string_from_utf8((jerry_char_t*)prop.utf8name);
+        jerry_create_string_from_utf8((jerry_char_t*)prop.utf8name);
       jerryx_create_handle(jval_prop_name);
     } else if (prop.name != NULL) {
       jval_prop_name = AS_JERRY_VALUE(prop.name);
@@ -317,7 +317,7 @@ napi_status napi_define_properties(napi_env env, napi_value object,
       return status;
 
     jerry_value_t return_value =
-        jerry_define_own_property(jval_target, jval_prop_name, &prop_desc);
+      jerry_define_own_property(jval_target, jval_prop_name, &prop_desc);
     if (jerry_value_is_error(return_value)) {
       NAPI_RETURN(napi_invalid_arg);
     }

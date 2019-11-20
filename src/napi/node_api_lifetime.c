@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-#include "jerryscript-ext/handle-scope.h"
 #include <stdlib.h>
 #include "internal/node_api_internal.h"
+#include "jerryscript-ext/handle-scope.h"
 
 JS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(object_info);
 
@@ -34,7 +34,7 @@ static void js_object_info_destroy(js_object_info_t* info) {
 }
 
 inline napi_status jerryx_status_to_napi_status(
-    jerryx_handle_scope_status status) {
+  jerryx_handle_scope_status status) {
   switch (status) {
     case jerryx_handle_scope_mismatch:
       NAPI_RETURN(napi_handle_scope_mismatch);
@@ -46,7 +46,7 @@ inline napi_status jerryx_status_to_napi_status(
 }
 
 js_object_info_t* js_get_object_native_info(jerry_value_t jval,
-                                                  size_t native_info_size) {
+                                            size_t native_info_size) {
   void* info;
   if (!jerry_get_object_native_pointer(jval, &info, &this_module_native_info)) {
     info = js_malloc(native_info_size);
@@ -57,7 +57,7 @@ js_object_info_t* js_get_object_native_info(jerry_value_t jval,
 }
 
 js_object_info_t* js_try_get_object_native_info(jerry_value_t jval,
-                                                      size_t native_info_size) {
+                                                size_t native_info_size) {
   void* info = NULL;
   if (jerry_get_object_native_pointer(jval, &info, &this_module_native_info)) {
     return (js_object_info_t*)info;
@@ -77,13 +77,13 @@ napi_status napi_open_handle_scope(napi_env env, napi_handle_scope* result) {
 }
 
 napi_status napi_open_escapable_handle_scope(
-    napi_env env, napi_escapable_handle_scope* result) {
+  napi_env env, napi_escapable_handle_scope* result) {
   NAPI_TRY_ENV(env);
   NAPI_WEAK_ASSERT(napi_invalid_arg, result != NULL);
 
   jerryx_handle_scope_status status;
-  status = jerryx_open_escapable_handle_scope(
-      (jerryx_escapable_handle_scope*)result);
+  status =
+    jerryx_open_escapable_handle_scope((jerryx_escapable_handle_scope*)result);
 
   return jerryx_status_to_napi_status(status);
 }
@@ -97,11 +97,11 @@ napi_status napi_close_handle_scope(napi_env env, napi_handle_scope scope) {
 }
 
 napi_status napi_close_escapable_handle_scope(
-    napi_env env, napi_escapable_handle_scope scope) {
+  napi_env env, napi_escapable_handle_scope scope) {
   NAPI_TRY_ENV(env);
   jerryx_handle_scope_status status;
   status =
-      jerryx_close_escapable_handle_scope((jerryx_escapable_handle_scope)scope);
+    jerryx_close_escapable_handle_scope((jerryx_escapable_handle_scope)scope);
 
   return jerryx_status_to_napi_status(status);
 }
@@ -113,8 +113,8 @@ napi_status napi_escape_handle(napi_env env, napi_escapable_handle_scope scope,
 
   jerryx_handle_scope_status status;
   status =
-      jerryx_escape_handle((jerryx_escapable_handle_scope)scope,
-                           AS_JERRY_VALUE(escapee), (jerry_value_t*)result);
+    jerryx_escape_handle((jerryx_escapable_handle_scope)scope,
+                         AS_JERRY_VALUE(escapee), (jerry_value_t*)result);
 
   return jerryx_status_to_napi_status(status);
 }
@@ -126,7 +126,7 @@ napi_status napi_create_reference(napi_env env, napi_value value,
 
   jerry_value_t jval = AS_JERRY_VALUE(value);
   js_object_info_t* info =
-      js_get_object_native_info(jval, sizeof(js_object_info_t));
+    js_get_object_native_info(jval, sizeof(js_object_info_t));
 
   js_reference_t* ref = js_malloc(sizeof(js_reference_t));
   ref->refcount = initial_refcount;
@@ -158,7 +158,7 @@ napi_status napi_delete_reference(napi_env env, napi_ref ref) {
   if (jerry_value_is_object(js_ref->jval)) {
     jerry_value_t jval = js_ref->jval;
     js_object_info_t* info =
-        js_get_object_native_info(jval, sizeof(js_object_info_t));
+      js_get_object_native_info(jval, sizeof(js_object_info_t));
 
     bool found = false;
     js_reference_t* comp = info->ref_start;
