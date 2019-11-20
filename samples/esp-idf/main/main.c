@@ -1,4 +1,4 @@
-#include "rt-node.h"
+#include "js.h"
 #include "freertos/FreeRTOS.h"
 
 #define MEM_FLAGS MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT
@@ -16,13 +16,13 @@ void* espidf_calloc(size_t count, size_t size) {
 }
 
 int app_main(int argc ,char **argv) {
-  rtnode_allocator_t allocator = {
+  js_allocator_t allocator = {
     .malloc_fn = espidf_malloc,
     .realloc_fn = espidf_realloc,
     .calloc_fn = espidf_calloc,
     .free_fn = free
   };
-  rtnode_set_allocator(&allocator);
-  rtnode_start();
+  js_set_allocator(&allocator);
+  js_start();
   return 0;
 }

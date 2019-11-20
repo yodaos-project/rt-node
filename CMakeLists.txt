@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 project(rtnode C)
 
 # set jerry build options
+set(ENABLE_LTO                      OFF  CACHE BOOL "Enable LTO")
 set(JERRY_CMDLINE                   OFF  CACHE BOOL "Build jerry command line tool?")
 set(JERRY_PORT_DEFAULT              ON  CACHE BOOL "Build default jerry port implementation?")
 set(JERRY_EXT                       ON  CACHE BOOL "Build jerry-ext?")
@@ -23,7 +24,7 @@ endif()
 
 # package src/js/*.js to src/rtnode-snapshots.c before build
 file(GLOB JS_FILES src/js/*.js)
-add_custom_command(OUTPUT ${CMAKE_SOURCE_DIR}/src/rtnode-snapshots.c ${CMAKE_SOURCE_DIR}/rtnode-snapshots.h
+add_custom_command(OUTPUT ${CMAKE_SOURCE_DIR}/src/js-snapshots.c ${CMAKE_SOURCE_DIR}/js-snapshots.h
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
   COMMAND bash ${CMAKE_SOURCE_DIR}/tools/js2c.sh
   DEPENDS ${JS_FILES} ${CMAKE_SOURCE_DIR}/tools/js2c.sh ${CMAKE_SOURCE_DIR}/tools/js2c.py)
@@ -33,7 +34,7 @@ set(INCLUDE_LIST
   ${CMAKE_SOURCE_DIR}/deps/jerryscript/jerry-core/include
   ${CMAKE_SOURCE_DIR}/deps/jerryscript/jerry-ext/include
   ${CMAKE_SOURCE_DIR}/deps/jerryscript/jerry-port/default/include
-  ${CMAKE_SOURCE_DIR}/deps/rtev/include
+  ${CMAKE_SOURCE_DIR}/deps/rv/include
   ${CMAKE_SOURCE_DIR}/include
   ${CMAKE_SOURCE_DIR}/src/internal
   ${CMAKE_SOURCE_DIR}/src
@@ -44,16 +45,16 @@ include_directories(${INCLUDE_LIST})
 aux_source_directory(src/ SRC_LIST)
 aux_source_directory(src/napi NAPI_LIST)
 aux_source_directory(src/modules MODULES_LIST)
-set(SNAPSHOT_SRC src/rtnode-snapshots.c)
+set(SNAPSHOT_SRC src/js-snapshots.c)
 
 # build deps
 add_subdirectory(deps/jerryscript)
-add_subdirectory(deps/rtev)
+add_subdirectory(deps/rv)
 
 # build library
 add_library(rtnode ${SRC_LIST} ${NAPI_LIST} ${MODULES_LIST} ${SNAPSHOT_SRC})
 target_link_libraries(rtnode
-  rtev
+  rv
   jerry-core
   jerry-ext
   jerry-port-default-minimal)

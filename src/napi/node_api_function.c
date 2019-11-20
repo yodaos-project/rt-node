@@ -20,19 +20,19 @@
 #include "internal/node_api_internal.h"
 #include "node_api.h"
 
-static jerry_value_t rtnode_napi_function_handler(
+static jerry_value_t js_napi_function_handler(
     const jerry_value_t func_obj, const jerry_value_t this_val,
     const jerry_value_t args_p[], const jerry_length_t args_cnt) {
-  rtnode_function_info_t* function_info = (rtnode_function_info_t*)
-      rtnode_try_get_object_native_info(func_obj, sizeof(rtnode_function_info_t));
-  RTNODE_ASSERT(function_info != NULL);
+  js_function_info_t* function_info = (js_function_info_t*)
+      js_try_get_object_native_info(func_obj, sizeof(js_function_info_t));
+  JS_ASSERT(function_info != NULL);
 
   napi_env env = function_info->env;
 
   jerryx_handle_scope scope;
   jerryx_open_handle_scope(&scope);
 
-  rtnode_callback_info_t* callback_info = rtnode_malloc(sizeof(rtnode_callback_info_t));
+  js_callback_info_t* callback_info = js_malloc(sizeof(js_callback_info_t));
   callback_info->argc = args_cnt;
   callback_info->argv = (jerry_value_t*)args_p;
   callback_info->jval_this = this_val;
@@ -42,20 +42,20 @@ static jerry_value_t rtnode_napi_function_handler(
   callback_info->handle_scope = scope;
   callback_info->function_info = function_info;
 
-  rtnode_napi_set_current_callback(env, callback_info);
+  js_napi_set_current_callback(env, callback_info);
   napi_value nvalue_ret =
       function_info->cb(env, (napi_callback_info)callback_info);
-  rtnode_napi_set_current_callback(env, NULL);
-  rtnode_free(callback_info);
+  js_napi_set_current_callback(env, NULL);
+  js_free(callback_info);
 
   jerry_value_t jval_ret;
-  if (rtnode_napi_is_exception_pending(env)) {
-    jerry_value_t jval_err = rtnode_napi_env_get_and_clear_exception(env);
+  if (js_napi_is_exception_pending(env)) {
+    jerry_value_t jval_err = js_napi_env_get_and_clear_exception(env);
     if (jval_err != (uintptr_t)NULL) {
       jval_ret = jval_err;
     } else {
-      jval_err = rtnode_napi_env_get_and_clear_fatal_exception(env);
-      RTNODE_ASSERT(jval_err != (uintptr_t)NULL);
+      jval_err = js_napi_env_get_and_clear_fatal_exception(env);
+      JS_ASSERT(jval_err != (uintptr_t)NULL);
 
       jval_ret = jval_err;
     }
@@ -83,7 +83,7 @@ cleanup:
    * Clear N-API env extended error info on end of external function
    * execution to prevent error info been passed to next external function.
    */
-  rtnode_napi_clear_error_info(env);
+  js_napi_clear_error_info(env);
   return jval_ret;
 }
 
@@ -92,11 +92,11 @@ napi_status napi_create_function(napi_env env, const char* utf8name,
                                  napi_value* result) {
   NAPI_TRY_ENV(env);
   jerry_value_t jval_func =
-      jerry_create_external_function(rtnode_napi_function_handler);
+      jerry_create_external_function(js_napi_function_handler);
   jerryx_create_handle(jval_func);
 
-  rtnode_function_info_t* function_info = (rtnode_function_info_t*)
-      rtnode_get_object_native_info(jval_func, sizeof(rtnode_function_info_t));
+  js_function_info_t* function_info = (js_function_info_t*)
+      js_get_object_native_info(jval_func, sizeof(js_function_info_t));
   function_info->env = env;
   function_info->cb = cb;
   function_info->data = data;
@@ -115,13 +115,13 @@ napi_status napi_call_function(napi_env env, napi_value recv, napi_value func,
 
   NAPI_TRY_TYPE(function, jval_func);
 
-  jerry_value_t* jval_argv = rtnode_calloc(argc, sizeof(jerry_value_t));
+  jerry_value_t* jval_argv = js_calloc(argc, sizeof(jerry_value_t));
   for (size_t idx = 0; idx < argc; ++idx) {
     jval_argv[idx] = AS_JERRY_VALUE(argv[idx]);
   }
   JERRYX_CREATE(jval_ret,
                 jerry_call_function(jval_func, jval_this, jval_argv, argc));
-  rtnode_free(jval_argv);
+  js_free(jval_argv);
 
   if (jerry_value_is_error(jval_ret)) {
     NAPI_INTERNAL_CALL(napi_throw(env, AS_NAPI_VALUE(jval_ret)));
@@ -136,7 +136,7 @@ napi_status napi_get_cb_info(napi_env env, napi_callback_info cbinfo,
                              size_t* argc, napi_value* argv,
                              napi_value* thisArg, void** data) {
   NAPI_TRY_ENV(env);
-  rtnode_callback_info_t* callback_info = (rtnode_callback_info_t*)cbinfo;
+  js_callback_info_t* callback_info = (js_callback_info_t*)cbinfo;
 
   size_t _argc = (argc == NULL || argv == NULL) ? 0 : *argc;
   for (size_t i = 0; i < _argc; ++i) {
@@ -161,7 +161,7 @@ napi_status napi_get_cb_info(napi_env env, napi_callback_info cbinfo,
 
 napi_status napi_get_new_target(napi_env env, napi_callback_info cbinfo,
                                 napi_value* result) {
-  rtnode_callback_info_t* callback_info = (rtnode_callback_info_t*)cbinfo;
+  js_callback_info_t* callback_info = (js_callback_info_t*)cbinfo;
   jerry_value_t jval_this = callback_info->jval_this;
   jerry_value_t jval_target = callback_info->jval_func;
   jerry_value_t is_instance =
@@ -187,13 +187,13 @@ napi_status napi_new_instance(napi_env env, napi_value constructor, size_t argc,
 
   NAPI_TRY_TYPE(function, jval_cons);
 
-  jerry_value_t* jval_argv = rtnode_calloc(argc, sizeof(jerry_value_t));
+  jerry_value_t* jval_argv = js_calloc(argc, sizeof(jerry_value_t));
   for (size_t idx = 0; idx < argc; ++idx) {
     jval_argv[idx] = AS_JERRY_VALUE(argv[idx]);
   }
 
   JERRYX_CREATE(jval_ret, jerry_construct_object(jval_cons, jval_argv, argc));
-  rtnode_free(jval_argv);
+  js_free(jval_argv);
 
   if (jerry_value_is_error(jval_ret)) {
     NAPI_INTERNAL_CALL(napi_throw(env, AS_NAPI_VALUE(jval_ret)));

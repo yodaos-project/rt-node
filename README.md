@@ -18,7 +18,7 @@ N-API is supported in order to be compatible with different embed JavaScript eng
 ## Dependencies
 
 - [JerryScript](./deps/jerryscript), a lightweight JavaScript engine
-- [rtev](./deps/rtev), a tiny event loop library
+- [rv](./deps/rv), a tiny event loop library
 
 ## Example
 

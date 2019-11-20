@@ -39,8 +39,8 @@ napi_status napi_get_version(napi_env env, uint32_t* result) {
 // FIXME: implement this function
 //napi_status napi_get_uv_event_loop(napi_env env, uv_loop_t** loop) {
 //  NAPI_TRY_ENV(env);
-//  rtnode_environment_t* rtnode_env = rtnode_environment_get();
-//  uv_loop_t* rtnode_loop = rtnode_environment_loop(rtnode_env);
-//  NAPI_ASSIGN(loop, rtnode_loop);
+//  js_environment_t* js_env = js_environment_get();
+//  uv_loop_t* js_loop = js_environment_loop(js_env);
+//  NAPI_ASSIGN(loop, js_loop);
 //  NAPI_RETURN(napi_ok);
 //}

@@ -17,7 +17,7 @@
 #ifndef JS_NODE_API_H
 #define JS_NODE_API_H
 
-#include "rt-node.h"
+#include "js-common.h"
 #include "jerryscript-ext/handle-scope.h"
 #include "jerryscript.h"
 #include "internal/node_api_internal_types.h"
@@ -37,14 +37,14 @@
  */
 #define NAPI_RETURN_WITH_MSG(status, message)                                \
   do {                                                                       \
-    rtnode_napi_set_error_info(rtnode_get_current_napi_env(), status, message, \
+    js_napi_set_error_info(js_get_current_napi_env(), status, message, \
                               0, NULL);                                      \
     return status;                                                           \
   } while (0)
 
 #define NAPI_RETURN(status)                                                  \
   do {                                                                       \
-    rtnode_napi_set_error_info(rtnode_get_current_napi_env(), status, NULL, 0, \
+    js_napi_set_error_info(js_get_current_napi_env(), status, NULL, 0, \
                               NULL);                                         \
     return status;                                                           \
   } while (0)
@@ -91,7 +91,7 @@
  */
 #define NAPI_TRY_NO_PENDING_EXCEPTION(env) \
   NAPI_WEAK_ASSERT(napi_pending_exception, \
-                   !rtnode_napi_is_exception_pending(env))
+                   !js_napi_is_exception_pending(env))
 /** MARK: - N-API Asserts */
 
 /**
@@ -128,31 +128,31 @@ int napi_module_init_pending(jerry_value_t* exports);
 /** MARK: - END node_api_module.c */
 
 /** MARK: - node_api_env.c */
-napi_env rtnode_get_current_napi_env(void);
+napi_env js_get_current_napi_env(void);
 bool napi_try_env_helper(napi_env env);
-void rtnode_napi_set_current_callback(napi_env env,
-                                     rtnode_callback_info_t* callback_info);
-rtnode_callback_info_t* rtnode_napi_get_current_callback(napi_env env);
+void js_napi_set_current_callback(napi_env env,
+                                     js_callback_info_t* callback_info);
+js_callback_info_t* js_napi_get_current_callback(napi_env env);
 
-void rtnode_napi_set_error_info(napi_env env, napi_status error_code,
+void js_napi_set_error_info(napi_env env, napi_status error_code,
                                const char* error_message,
                                uint32_t engine_error_code,
                                void* engine_reserved);
-void rtnode_napi_clear_error_info(napi_env env);
+void js_napi_clear_error_info(napi_env env);
 
-bool rtnode_napi_is_exception_pending(napi_env env);
-jerry_value_t rtnode_napi_env_get_and_clear_exception(napi_env env);
-jerry_value_t rtnode_napi_env_get_and_clear_fatal_exception(napi_env env);
+bool js_napi_is_exception_pending(napi_env env);
+jerry_value_t js_napi_env_get_and_clear_exception(napi_env env);
+jerry_value_t js_napi_env_get_and_clear_fatal_exception(napi_env env);
 /** MARK: - END node_api_env.c */
 
 /** MARK: - node_api_lifetime.c */
 napi_status jerryx_status_to_napi_status(jerryx_handle_scope_status status);
-rtnode_object_info_t* rtnode_get_object_native_info(jerry_value_t jval,
+js_object_info_t* js_get_object_native_info(jerry_value_t jval,
                                                   size_t native_info_size);
-rtnode_object_info_t* rtnode_try_get_object_native_info(jerry_value_t jval,
+js_object_info_t* js_try_get_object_native_info(jerry_value_t jval,
                                                       size_t native_info_size);
-void rtnode_setup_napi(void);
-void rtnode_cleanup_napi(void);
+void js_setup_napi(void);
+void js_cleanup_napi(void);
 /** MARK: - END node_api_lifetime.c */
 
 napi_status napi_assign_bool(bool value, bool* result);

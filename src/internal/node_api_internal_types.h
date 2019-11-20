@@ -21,17 +21,17 @@
 //#include <uv.h>
 #include "node_api.h"
 
-typedef void (*rtnode_cleanup_hook_fn)(void* arg);
+typedef void (*js_cleanup_hook_fn)(void* arg);
 
-typedef struct rtnode_async_context_s rtnode_async_context_t;
-typedef struct rtnode_async_work_s rtnode_async_work_t;
-typedef struct rtnode_buffer_external_info_s rtnode_buffer_external_info_t;
-typedef struct rtnode_callback_info_s rtnode_callback_info_t;
-typedef struct rtnode_cleanup_hook_s rtnode_cleanup_hook_t;
-typedef struct rtnode_function_info_s rtnode_function_info_t;
-typedef struct rtnode_napi_env_s rtnode_napi_env_t;
-typedef struct rtnode_object_info_s rtnode_object_info_t;
-typedef struct rtnode_reference_s rtnode_reference_t;
+typedef struct js_async_context_s js_async_context_t;
+typedef struct js_async_work_s js_async_work_t;
+typedef struct js_buffer_external_info_s js_buffer_external_info_t;
+typedef struct js_callback_info_s js_callback_info_t;
+typedef struct js_cleanup_hook_s js_cleanup_hook_t;
+typedef struct js_function_info_s js_function_info_t;
+typedef struct js_napi_env_s js_napi_env_t;
+typedef struct js_object_info_s js_object_info_t;
+typedef struct js_reference_s js_reference_t;
 
 typedef enum {
   napi_module_load_ok = 0,
@@ -40,25 +40,25 @@ typedef enum {
   napi_module_no_nm_register_func,
 } napi_module_load_status;
 
-struct rtnode_cleanup_hook_s {
-  rtnode_cleanup_hook_fn fn;
+struct js_cleanup_hook_s {
+  js_cleanup_hook_fn fn;
   void* arg;
-  rtnode_cleanup_hook_t* next;
+  js_cleanup_hook_t* next;
 };
 
-struct rtnode_buffer_external_info_s {
+struct js_buffer_external_info_s {
   napi_env env;
   void* external_data;
   void* finalize_hint;
   napi_finalize finalize_cb;
 };
 
-struct rtnode_reference_s {
+struct js_reference_s {
   jerry_value_t jval;
   uint32_t refcount;
 
-  rtnode_reference_t* prev;
-  rtnode_reference_t* next;
+  js_reference_t* prev;
+  js_reference_t* next;
 };
 
 #define JS_OBJECT_INFO_FIELDS \
@@ -66,44 +66,44 @@ struct rtnode_reference_s {
   void* native_object;           \
   napi_finalize finalize_cb;     \
   void* finalize_hint;           \
-  rtnode_reference_t* ref_start;  \
-  rtnode_reference_t* ref_end;
+  js_reference_t* ref_start;  \
+  js_reference_t* ref_end;
 
-struct rtnode_object_info_s {
+struct js_object_info_s {
   JS_OBJECT_INFO_FIELDS
 };
 
-struct rtnode_function_info_s {
+struct js_function_info_s {
   JS_OBJECT_INFO_FIELDS
 
   napi_callback cb;
   void* data;
 };
 
-struct rtnode_callback_info_s {
+struct js_callback_info_s {
   size_t argc;
   jerry_value_t* argv;
   jerry_value_t jval_this;
   jerry_value_t jval_func;
 
   jerryx_handle_scope handle_scope;
-  rtnode_function_info_t* function_info;
+  js_function_info_t* function_info;
 };
 
-struct rtnode_napi_env_s {
+struct js_napi_env_s {
   napi_value pending_exception;
   napi_value pending_fatal_exception;
   napi_extended_error_info extended_error_info;
 
   /** Common function context */
-  rtnode_callback_info_t* current_callback_info;
+  js_callback_info_t* current_callback_info;
   pthread_t main_thread;
 
-  rtnode_cleanup_hook_t* cleanup_hook;
+  js_cleanup_hook_t* cleanup_hook;
 };
 
-struct rtnode_async_work_s {
-  rtev_worker_t work_req;
+struct js_async_work_s {
+  rv_worker_t work_req;
 
   napi_env env;
   napi_value async_resource;
@@ -113,7 +113,7 @@ struct rtnode_async_work_s {
   void* data;
 };
 
-struct rtnode_async_context_s {
+struct js_async_context_s {
   napi_env env;
   napi_value async_resource;
   napi_value async_resource_name;

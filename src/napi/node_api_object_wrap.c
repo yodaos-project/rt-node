@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "rt-node.h"
+#include "js-common.h"
 #include "internal/node_api_internal.h"
 
 napi_status napi_define_class(napi_env env, const char* utf8name, size_t length,
@@ -52,8 +52,8 @@ napi_status napi_wrap(napi_env env, napi_value js_object, void* native_object,
   jerry_value_t jval = AS_JERRY_VALUE(js_object);
   NAPI_TRY_TYPE(object, jval);
 
-  rtnode_object_info_t* object_info =
-      rtnode_get_object_native_info(jval, sizeof(rtnode_object_info_t));
+  js_object_info_t* object_info =
+      js_get_object_native_info(jval, sizeof(js_object_info_t));
 
   NAPI_WEAK_ASSERT(napi_invalid_arg, (object_info->native_object == NULL));
   NAPI_WEAK_ASSERT(napi_invalid_arg, (object_info->finalize_cb == NULL));
@@ -75,8 +75,8 @@ napi_status napi_unwrap(napi_env env, napi_value js_object, void** result) {
   jerry_value_t jval = AS_JERRY_VALUE(js_object);
   NAPI_TRY_TYPE(object, jval);
 
-  rtnode_object_info_t* object_info =
-      rtnode_get_object_native_info(jval, sizeof(rtnode_object_info_t));
+  js_object_info_t* object_info =
+      js_get_object_native_info(jval, sizeof(js_object_info_t));
 
   NAPI_ASSIGN(result, object_info->native_object);
   NAPI_RETURN(napi_ok);
@@ -86,8 +86,8 @@ napi_status napi_remove_wrap(napi_env env, napi_value js_object,
                              void** result) {
   NAPI_TRY_ENV(env);
   jerry_value_t jval = AS_JERRY_VALUE(js_object);
-  rtnode_object_info_t* object_info =
-      rtnode_get_object_native_info(jval, sizeof(rtnode_object_info_t));
+  js_object_info_t* object_info =
+      js_get_object_native_info(jval, sizeof(js_object_info_t));
 
   NAPI_ASSIGN(result, object_info->native_object);
 

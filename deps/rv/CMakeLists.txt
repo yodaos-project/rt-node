@@ -1,0 +1,17 @@
+cmake_minimum_required(VERSION 3.5)
+
+include_directories(./include)
+include_directories(./src)
+aux_source_directory(./src RV_SRC)
+add_library(rv ${RV_SRC})
+
+if("${RV_SAMPLE}" STREQUAL "ON")
+  add_executable(timer sample/timer.c)
+  add_executable(async sample/async.c)
+  add_executable(worker sample/worker.c)
+  add_executable(sample sample/sample.c)
+  target_link_libraries(timer rv)
+  target_link_libraries(async rv)
+  target_link_libraries(worker rv)
+  target_link_libraries(sample rv)
+endif()

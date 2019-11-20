@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "rt-node.h"
+#include "js-common.h"
 #include <stdlib.h>
 #include "internal/node_api_internal.h"
 
@@ -24,46 +24,46 @@
 
 static const char* NAPI_GENERIC_ERROR_MESSAGE = "Unexpected error.";
 
-static rtnode_napi_env_t current_env = {
+static js_napi_env_t current_env = {
   .pending_exception = NULL, .pending_fatal_exception = NULL,
 };
 
-napi_env rtnode_get_current_napi_env(void) {
+napi_env js_get_current_napi_env(void) {
   return (napi_env)&current_env;
 }
 
-static pthread_t* rtnode_get_napi_env_thread(napi_env env) {
-  return &((rtnode_napi_env_t*)env)->main_thread;
+static pthread_t* js_get_napi_env_thread(napi_env env) {
+  return &((js_napi_env_t*)env)->main_thread;
 }
 
 bool napi_try_env_helper(napi_env env) {
   pthread_t current = pthread_self();
-  RTNODE_ASSERT(pthread_equal(*rtnode_get_napi_env_thread(env), current));
-  return (env != rtnode_get_current_napi_env());
+  JS_ASSERT(pthread_equal(*js_get_napi_env_thread(env), current));
+  return (env != js_get_current_napi_env());
 }
 
-bool rtnode_napi_is_exception_pending(napi_env env) {
-  rtnode_napi_env_t* curr_env = (rtnode_napi_env_t*)env;
+bool js_napi_is_exception_pending(napi_env env) {
+  js_napi_env_t* curr_env = (js_napi_env_t*)env;
   return !(curr_env->pending_exception == NULL &&
            curr_env->pending_fatal_exception == NULL);
 }
 
-void rtnode_napi_set_current_callback(napi_env env,
-                                     rtnode_callback_info_t* callback_info) {
-  rtnode_napi_env_t* curr_env = (rtnode_napi_env_t*)env;
+void js_napi_set_current_callback(napi_env env,
+                                     js_callback_info_t* callback_info) {
+  js_napi_env_t* curr_env = (js_napi_env_t*)env;
   curr_env->current_callback_info = callback_info;
 }
 
-rtnode_callback_info_t* rtnode_napi_get_current_callback(napi_env env) {
-  rtnode_napi_env_t* curr_env = (rtnode_napi_env_t*)env;
+js_callback_info_t* js_napi_get_current_callback(napi_env env) {
+  js_napi_env_t* curr_env = (js_napi_env_t*)env;
   return curr_env->current_callback_info;
 }
 
-void rtnode_napi_set_error_info(napi_env env, napi_status error_code,
+void js_napi_set_error_info(napi_env env, napi_status error_code,
                                const char* error_message,
                                uint32_t engine_error_code,
                                void* engine_reserved) {
-  rtnode_napi_env_t* cur_env = (rtnode_napi_env_t*)env;
+  js_napi_env_t* cur_env = (js_napi_env_t*)env;
 
   if (error_message == NULL && error_code != napi_ok) {
     error_message = NAPI_GENERIC_ERROR_MESSAGE;
@@ -75,8 +75,8 @@ void rtnode_napi_set_error_info(napi_env env, napi_status error_code,
   cur_env->extended_error_info.engine_reserved = engine_reserved;
 }
 
-void rtnode_napi_clear_error_info(napi_env env) {
-  rtnode_napi_env_t* cur_env = (rtnode_napi_env_t*)env;
+void js_napi_clear_error_info(napi_env env) {
+  js_napi_env_t* cur_env = (js_napi_env_t*)env;
 
   cur_env->extended_error_info.error_code = napi_ok;
   cur_env->extended_error_info.error_message = NULL;
@@ -84,8 +84,8 @@ void rtnode_napi_clear_error_info(napi_env env) {
   cur_env->extended_error_info.engine_reserved = NULL;
 }
 
-jerry_value_t rtnode_napi_env_get_and_clear_exception(napi_env env) {
-  rtnode_napi_env_t* cur_env = (rtnode_napi_env_t*)env;
+jerry_value_t js_napi_env_get_and_clear_exception(napi_env env) {
+  js_napi_env_t* cur_env = (js_napi_env_t*)env;
 
   jerry_value_t jval_ret = AS_JERRY_VALUE(cur_env->pending_exception);
   cur_env->pending_exception = NULL;
@@ -93,8 +93,8 @@ jerry_value_t rtnode_napi_env_get_and_clear_exception(napi_env env) {
   return jval_ret;
 }
 
-jerry_value_t rtnode_napi_env_get_and_clear_fatal_exception(napi_env env) {
-  rtnode_napi_env_t* cur_env = (rtnode_napi_env_t*)env;
+jerry_value_t js_napi_env_get_and_clear_fatal_exception(napi_env env) {
+  js_napi_env_t* cur_env = (js_napi_env_t*)env;
 
   jerry_value_t jval_ret = AS_JERRY_VALUE(cur_env->pending_fatal_exception);
   cur_env->pending_fatal_exception = NULL;
@@ -105,7 +105,7 @@ jerry_value_t rtnode_napi_env_get_and_clear_fatal_exception(napi_env env) {
 // Methods to support error handling
 napi_status napi_throw(napi_env env, napi_value error) {
   NAPI_TRY_ENV(env);
-  rtnode_napi_env_t* curr_env = (rtnode_napi_env_t*)env;
+  js_napi_env_t* curr_env = (js_napi_env_t*)env;
   NAPI_TRY_NO_PENDING_EXCEPTION(env);
 
   jerry_value_t jval_err = AS_JERRY_VALUE(error);
@@ -135,7 +135,7 @@ static napi_status napi_throw_helper(jerry_error_t jerry_error_type,
       jerry_create_error(jerry_error_type, (jerry_char_t*)msg);
   if (code != NULL) {
     jval_error = jerry_get_value_from_error(jval_error, true);
-    rtnode_object_set_string(jval_error, "code", code);
+    js_object_set_string(jval_error, "code", code);
     jval_error = jerry_create_error_from_value(jval_error, true);
   }
   jerryx_create_handle(jval_error);
@@ -157,7 +157,7 @@ DEF_NAPI_THROWS(range_error, JERRY_ERROR_RANGE);
 napi_status napi_fatal_exception(napi_env env, napi_value err) {
   NAPI_TRY_ENV(env);
   NAPI_TRY_NO_PENDING_EXCEPTION(env);
-  rtnode_napi_env_t* curr_env = (rtnode_napi_env_t*)env;
+  js_napi_env_t* curr_env = (js_napi_env_t*)env;
 
   jerry_value_t jval_err = AS_JERRY_VALUE(err);
   /**
@@ -179,7 +179,7 @@ napi_status napi_fatal_exception(napi_env env, napi_value err) {
 // Methods to support catching exceptions
 napi_status napi_is_exception_pending(napi_env env, bool* result) {
   NAPI_TRY_ENV(env);
-  NAPI_ASSIGN(result, rtnode_napi_is_exception_pending(env));
+  NAPI_ASSIGN(result, js_napi_is_exception_pending(env));
   /** should not clear last error info */
   return napi_ok;
 }
@@ -187,7 +187,7 @@ napi_status napi_is_exception_pending(napi_env env, bool* result) {
 napi_status napi_get_and_clear_last_exception(napi_env env,
                                               napi_value* result) {
   NAPI_TRY_ENV(env);
-  rtnode_napi_env_t* curr_env = (rtnode_napi_env_t*)env;
+  js_napi_env_t* curr_env = (js_napi_env_t*)env;
 
   napi_value error;
   if (curr_env->pending_exception != NULL) {
@@ -211,7 +211,7 @@ napi_status napi_get_and_clear_last_exception(napi_env env,
 napi_status napi_get_last_error_info(napi_env env,
                                      const napi_extended_error_info** result) {
   NAPI_TRY_ENV(env);
-  rtnode_napi_env_t* curr_env = (rtnode_napi_env_t*)env;
+  js_napi_env_t* curr_env = (js_napi_env_t*)env;
   napi_extended_error_info* error_info = &curr_env->extended_error_info;
 
   NAPI_ASSIGN(result, error_info);

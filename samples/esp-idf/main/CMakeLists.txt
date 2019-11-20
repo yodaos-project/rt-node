@@ -2,7 +2,7 @@ set(INCLUDE_LIST
   ${CMAKE_SOURCE_DIR}/../../deps/jerryscript/jerry-core/include
   ${CMAKE_SOURCE_DIR}/../../deps/jerryscript/jerry-ext/include
   ${CMAKE_SOURCE_DIR}/../../deps/jerryscript/jerry-port/default/include
-  ${CMAKE_SOURCE_DIR}/../../deps/rtev/include
+  ${CMAKE_SOURCE_DIR}/../../deps/rv/include
   ${CMAKE_SOURCE_DIR}/../../include
   ${CMAKE_SOURCE_DIR}/../../src/internal
   ${CMAKE_SOURCE_DIR}/../../src

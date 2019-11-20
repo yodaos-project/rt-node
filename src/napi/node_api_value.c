@@ -33,8 +33,8 @@ const char* const napi_err_no_typedarray =
 const char* const napi_err_invalid_deferred =
     "Invalid deferred object. Please refer to the documentation.";
 
-static void rtnode_napi_buffer_external_free_cb(void* native_p) {
-  rtnode_buffer_external_info_t* info = (rtnode_buffer_external_info_t*)native_p;
+static void js_napi_buffer_external_free_cb(void* native_p) {
+  js_buffer_external_info_t* info = (js_buffer_external_info_t*)native_p;
 
   napi_env env = info->env;
   void* external_data = info->external_data;
@@ -44,7 +44,7 @@ static void rtnode_napi_buffer_external_free_cb(void* native_p) {
     finalize_cb(env, external_data, finalize_hint);
   }
 
-  rtnode_free(info);
+  js_free(info);
 }
 
 napi_status napi_assign_bool(bool value, bool* result) {
@@ -87,8 +87,8 @@ napi_status napi_create_arraybuffer(napi_env env, size_t byte_length,
   NAPI_RETURN(napi_ok);
 }
 
-static void rtnode_napi_arraybuffer_external_free_cb(void* native_p) {
-  RTNODE_UNUSED(native_p);
+static void js_napi_arraybuffer_external_free_cb(void* native_p) {
+  JS_UNUSED(native_p);
 }
 
 napi_status napi_create_external_arraybuffer(napi_env env, void* external_data,
@@ -109,10 +109,10 @@ napi_status napi_create_external_arraybuffer(napi_env env, void* external_data,
 
   JERRYX_CREATE(jval_arrbuf, jerry_create_arraybuffer_external(
                                  byte_length, external_data,
-                                 rtnode_napi_arraybuffer_external_free_cb));
+                                 js_napi_arraybuffer_external_free_cb));
 
-  rtnode_object_info_t* info =
-      rtnode_get_object_native_info(jval_arrbuf, sizeof(rtnode_object_info_t));
+  js_object_info_t* info =
+      js_get_object_native_info(jval_arrbuf, sizeof(js_object_info_t));
   info->env = env;
   info->native_object = external_data;
   info->finalize_hint = finalize_hint;
@@ -167,8 +167,8 @@ napi_status napi_create_typedarray(napi_env env, napi_typedarray_type type,
 //napi_status napi_create_buffer(napi_env env, size_t size, void** data,
 //                               napi_value* result) {
 //  NAPI_TRY_ENV(env);
-//  JERRYX_CREATE(jval_buf, rtnode_bufferwrap_create_buffer(size));
-//  rtnode_bufferwrap_t* buf_wrap = rtnode_bufferwrap_from_jbuffer(jval_buf);
+//  JERRYX_CREATE(jval_buf, js_bufferwrap_create_buffer(size));
+//  js_bufferwrap_t* buf_wrap = js_bufferwrap_from_jbuffer(jval_buf);
 //
 //  NAPI_ASSIGN(data, buf_wrap->buffer);
 //
@@ -179,10 +179,10 @@ napi_status napi_create_typedarray(napi_env env, napi_typedarray_type type,
 //napi_status napi_create_buffer_copy(napi_env env, size_t size, const void* data,
 //                                    void** result_data, napi_value* result) {
 //  NAPI_TRY_ENV(env);
-//  JERRYX_CREATE(jval_buf, rtnode_bufferwrap_create_buffer(size));
-//  rtnode_bufferwrap_t* buf_wrap = rtnode_bufferwrap_from_jbuffer(jval_buf);
+//  JERRYX_CREATE(jval_buf, js_bufferwrap_create_buffer(size));
+//  js_bufferwrap_t* buf_wrap = js_bufferwrap_from_jbuffer(jval_buf);
 //
-//  rtnode_bufferwrap_copy(buf_wrap, (char*)data, size);
+//  js_bufferwrap_copy(buf_wrap, (char*)data, size);
 //
 //  NAPI_ASSIGN(result_data, buf_wrap->buffer);
 //
@@ -213,12 +213,12 @@ napi_status napi_create_dataview(napi_env env, size_t byte_length,
   NAPI_RETURN(napi_ok);
 }
 
-static void napi_external_destroy(rtnode_object_info_t* info) {
+static void napi_external_destroy(js_object_info_t* info) {
   if (info->finalize_cb != NULL) {
     info->finalize_cb(info->env, info->native_object, info->finalize_hint);
   }
 
-  rtnode_free(info);
+  js_free(info);
 }
 
 static const jerry_object_native_info_t napi_external_native_info = {
@@ -231,8 +231,8 @@ napi_status napi_create_external(napi_env env, void* data,
   NAPI_TRY_ENV(env);
   napi_value nval;
   NAPI_INTERNAL_CALL(napi_create_object(env, &nval));
-  rtnode_object_info_t* info =
-      (rtnode_object_info_t*)rtnode_malloc(sizeof(rtnode_object_info_t));
+  js_object_info_t* info =
+      (js_object_info_t*)js_malloc(sizeof(js_object_info_t));
   info->native_object = data;
   info->finalize_cb = finalize_cb;
   info->finalize_hint = finalize_hint;
@@ -256,17 +256,17 @@ napi_status napi_create_external(napi_env env, void* data,
 //      napi_create_buffer_copy(env, length, data, (void**)&nval, &res));
 //
 //  jerry_value_t jbuffer = AS_JERRY_VALUE(res);
-//  rtnode_bufferwrap_t* bufferwrap = rtnode_bufferwrap_from_jbuffer(jbuffer);
-//  rtnode_buffer_external_info_t* info =
-//      rtnode_ALLOC(rtnode_buffer_external_info_t);
+//  js_bufferwrap_t* bufferwrap = js_bufferwrap_from_jbuffer(jbuffer);
+//  js_buffer_external_info_t* info =
+//      js_ALLOC(js_buffer_external_info_t);
 //
 //  info->env = env;
 //  info->external_data = data;
 //  info->finalize_hint = finalize_hint;
 //  info->finalize_cb = finalize_cb;
 //
-//  rtnode_bufferwrap_set_external_callback(bufferwrap,
-//                                         rtnode_napi_buffer_external_free_cb,
+//  js_bufferwrap_set_external_callback(bufferwrap,
+//                                         js_napi_buffer_external_free_cb,
 //                                         info);
 //
 //  NAPI_ASSIGN(result, res);
@@ -291,7 +291,7 @@ static napi_status napi_create_error_helper(jerry_error_t jerry_error_type,
   NAPI_TRY_TYPE(string, jval_msg);
 
   jerry_size_t msg_size = jerry_get_utf8_string_size(jval_msg);
-  jerry_char_t* raw_msg = rtnode_calloc(msg_size + 1, sizeof(jerry_char_t));
+  jerry_char_t* raw_msg = js_calloc(msg_size + 1, sizeof(jerry_char_t));
   jerry_size_t written_size =
       jerry_string_to_utf8_char_buffer(jval_msg, raw_msg, msg_size);
   NAPI_WEAK_ASSERT(napi_invalid_arg, written_size == msg_size);
@@ -299,13 +299,13 @@ static napi_status napi_create_error_helper(jerry_error_t jerry_error_type,
 
   jerry_value_t jval_error = jerry_create_error(jerry_error_type, raw_msg);
 
-  rtnode_free(raw_msg);
+  js_free(raw_msg);
 
   /** code has to be an JS string type, thus it can not be an number 0 */
   if (code != NULL) {
     NAPI_TRY_TYPE(string, jval_code);
     jval_error = jerry_get_value_from_error(jval_error, true);
-    rtnode_object_set_property(jval_error, "code", jval_code);
+    js_object_set_property(jval_error, "code", jval_code);
   }
 
   jerryx_create_handle(jval_error);
@@ -439,9 +439,9 @@ napi_status napi_get_arraybuffer_info(napi_env env, napi_value arraybuffer,
 //                                 size_t* length) {
 //  NAPI_TRY_ENV(env);
 //  jerry_value_t jval = AS_JERRY_VALUE(value);
-//  rtnode_bufferwrap_t* buf_wrap = rtnode_bufferwrap_from_jbuffer(jval);
+//  js_bufferwrap_t* buf_wrap = js_bufferwrap_from_jbuffer(jval);
 //  NAPI_ASSIGN(data, buf_wrap->buffer);
-//  NAPI_ASSIGN(length, rtnode_bufferwrap_length(buf_wrap));
+//  NAPI_ASSIGN(length, js_bufferwrap_length(buf_wrap));
 //
 //  NAPI_RETURN(napi_ok);
 //}
@@ -530,7 +530,7 @@ napi_status napi_get_typedarray_info(napi_env env, napi_value typedarray,
     CASE_JERRY_TYPEDARRAY_TYPE(UINT32, uint32);
     CASE_JERRY_TYPEDARRAY_TYPE(FLOAT32, float32);
     default: {
-      RTNODE_ASSERT(jtype == JERRY_TYPEDARRAY_FLOAT64);
+      JS_ASSERT(jtype == JERRY_TYPEDARRAY_FLOAT64);
       ntype = napi_float64_array;
       break;
     }
@@ -562,7 +562,7 @@ napi_status napi_get_value_external(napi_env env, napi_value value,
                                     void** result) {
   NAPI_TRY_ENV(env);
   jerry_value_t jval = AS_JERRY_VALUE(value);
-  rtnode_object_info_t* info = NULL;
+  js_object_info_t* info = NULL;
   if (!jerry_get_object_native_pointer(jval, (void**)&info,
                                        &napi_external_native_info)) {
     NAPI_ASSIGN(result, NULL);
@@ -710,7 +710,7 @@ DEF_NAPI_VALUE_IS(typedarray);
 //  NAPI_TRY_ENV(env);
 //  jerry_value_t jval_global = jerry_get_global_object();
 //  jerry_value_t jval_buffer =
-//      rtnode_jval_get_property(jval_global, rtnode_MAGIC_STRING_BUFFER);
+//      js_jval_get_property(jval_global, js_MAGIC_STRING_BUFFER);
 //
 //  napi_status status =
 //      napi_instanceof(env, value, AS_NAPI_VALUE(jval_buffer), result);
@@ -725,7 +725,7 @@ napi_status napi_is_error(napi_env env, napi_value value, bool* result) {
   NAPI_TRY_ENV(env);
   jerry_value_t jval_global = jerry_get_global_object();
   jerry_value_t jval_error =
-      rtnode_object_get_property(jval_global, "Error");
+      js_object_get_property(jval_global, "Error");
 
   napi_status status =
       napi_instanceof(env, value, AS_NAPI_VALUE(jval_error), result);
@@ -786,7 +786,7 @@ napi_status napi_create_promise(napi_env env, napi_deferred* deferred,
   jerry_value_t jpromise = jerry_create_promise();
   napi_assign_nvalue(jpromise, promise);
   size_t s = sizeof(napi_value*);
-  *deferred = rtnode_malloc(s);
+  *deferred = js_malloc(s);
   memcpy(*deferred, promise, s);
   NAPI_RETURN(napi_ok);
 }

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "rt-node.h"
+#include "js-common.h"
 #include "jerryscript-ext/handle-scope.h"
 #include "internal/node_api_internal.h"
 
@@ -35,7 +35,7 @@ int napi_module_init_pending(jerry_value_t* exports) {
     return napi_module_no_nm_register_func;
   }
 
-  napi_env env = rtnode_get_current_napi_env();
+  napi_env env = js_get_current_napi_env();
 
   jerryx_handle_scope scope;
   jerryx_open_handle_scope(&scope);
@@ -59,11 +59,11 @@ int napi_module_init_pending(jerry_value_t* exports) {
 
   mod_pending = NULL;
 
-  if (rtnode_napi_is_exception_pending(env)) {
+  if (js_napi_is_exception_pending(env)) {
     jerry_value_t jval_err;
-    jval_err = rtnode_napi_env_get_and_clear_exception(env);
+    jval_err = js_napi_env_get_and_clear_exception(env);
     if (jval_err == (uintptr_t)NULL) {
-      jval_err = rtnode_napi_env_get_and_clear_fatal_exception(env);
+      jval_err = js_napi_env_get_and_clear_fatal_exception(env);
     }
     jerry_release_value(jval_exports);
     *exports = jval_err;
