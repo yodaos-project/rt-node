@@ -156,6 +156,9 @@ int rv_worker_start(rv_ctx_t *ctx, rv_worker_t *worker, rv_worker_cb cb,
                       rv_worker_cb done_cb, rv_close_cb close_cb);
 int rv_worker_close(rv_worker_t *worker);
 
+#define rv_watcher_init(w) \
+  memset(w, sizeof(w), 0);
+
 // internal fn start
 int _rv_watcher_init(rv_ctx_t *ctx, rv_watcher_t *watcher,
                        rv_watcher_type_t type, rv_close_cb close_cb);
