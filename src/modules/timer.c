@@ -4,9 +4,9 @@
 static const jerry_object_native_info_t native_info = { NULL };
 
 static void on_timeout(rv_timer_t* timer) {
-  jerry_value_t jobject = JS_RV_WATCHER_DATA(timer)->jobject;
-  jerry_value_t jcallback = js_object_get_property(jobject, "handleTimeout");
-  js_call_function_void(jcallback, jobject, NULL, 0, NULL);
+  jerry_value_t jobj = JS_RV_WATCHER_DATA(timer)->jobject;
+  jerry_value_t jcallback = js_object_get_property(jobj, "handleTimeout");
+  js_call_function_void(jcallback, jobj, NULL, 0, NULL);
   jerry_release_value(jcallback);
 }
 
@@ -34,11 +34,11 @@ JS_FUNCTION(timer_constructor) {
 
 jerry_value_t js_init_timer() {
   jerry_value_t jtimer = jerry_create_external_function(timer_constructor);
-  jerry_value_t jprototype = jerry_create_object();
-  js_object_set_property(jtimer, "prototype", jprototype);
-  js_object_set_method(jprototype, "start", timer_start);
-  js_object_set_method(jprototype, "stop", timer_stop);
-  jerry_release_value(jprototype);
+  jerry_value_t jprop = jerry_create_object();
+  js_object_set_property(jtimer, "prototype", jprop);
+  js_object_set_method(jprop, "start", timer_start);
+  js_object_set_method(jprop, "stop", timer_stop);
+  jerry_release_value(jprop);
 
   return jtimer;
 }

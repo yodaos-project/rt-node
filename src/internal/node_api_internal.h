@@ -122,7 +122,7 @@
   jerryx_create_handle(var);
 
 /** MARK: - node_api_module.c */
-int napi_module_init_pending(jerry_value_t* exports);
+jerry_value_t napi_require_module(const char* name);
 /** MARK: - END node_api_module.c */
 
 /** MARK: - node_api_env.c */
@@ -154,5 +154,8 @@ void js_cleanup_napi(void);
 
 napi_status napi_assign_bool(bool value, bool* result);
 napi_status napi_assign_nvalue(jerry_value_t jvalue, napi_value* nvalue);
+
+void napi_init_module_queue();
+void napi_uninit_module_queue();
 
 #endif // JS_NODE_API_H

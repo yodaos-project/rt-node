@@ -1,10 +1,10 @@
 #include "rv.h"
 
 #define RV_CHECK_QUEUE(name) \
-  RV_ASSERT(QUEUE_EMPTY(&ctx->name), "ctx->" #name " is not empty");
+  RV_ASSERT(QUEUE_EMPTY(&ctx->name), "ctx->" #name " is not empty")
 
 #define RV_CHECK_LINK(name) \
-  RV_ASSERT(!ctx->name, "ctx->" #name " is not empty");
+  RV_ASSERT(!ctx->name, "ctx->" #name " is not empty")
 
 static void _rv_set_next_timeout(rv_ctx_t *ctx, struct timespec *spec) {
   spec->tv_sec = 0;

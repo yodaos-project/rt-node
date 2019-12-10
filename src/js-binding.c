@@ -1,6 +1,5 @@
 #include "js-binding.h"
 #include "js-common.h"
-#include "process.h"
 
 jerry_value_t js_object_get_property(jerry_value_t jobj, const char* name) {
   JS_ASSERT(jerry_value_is_object(jobj));

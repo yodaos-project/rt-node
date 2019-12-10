@@ -1,14 +1,10 @@
 #include "js-native.h"
 #include "console.h"
-#include "process.h"
 #include "require.h"
 #include "timer.h"
 
 const js_native_module_t native_modules[] = {
   { .type = JS_NATIVE_GLOBAL, .fn.global = js_init_require, .name = "require" },
-  { .type = JS_NATIVE_BINDING,
-    .fn.global = js_init_process,
-    .name = "process" },
   { .type = JS_NATIVE_BINDING,
     .fn.binding = js_init_console,
     .name = "console" },

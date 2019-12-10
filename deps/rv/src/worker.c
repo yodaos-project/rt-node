@@ -23,7 +23,7 @@ static void _rv_worker_close(rv_watcher_t *watcher) {
     QUEUE *head = QUEUE_HEAD(&ctx->worker_queue);     \
     QUEUE_REMOVE(head);                               \
     QUEUE_INIT(head);                                 \
-    worker = QUEUE_DATA(head, rv_worker_t, node);   \
+    worker = QUEUE_DATA(head, rv_worker_t, node);     \
   }
 
 static void* _rv_worker_run(void *data) {
@@ -31,7 +31,7 @@ static void* _rv_worker_run(void *data) {
   rv_worker_t *worker;
   pthread_mutex_lock(&ctx->worker_lock);
   while (true) {
-    NEW_TASK;
+    NEW_TASK
     if (worker == NULL) {
       pthread_cond_wait(&ctx->worker_cond, &ctx->worker_lock);
       if (ctx->is_running == false) {
@@ -39,7 +39,7 @@ static void* _rv_worker_run(void *data) {
         pthread_mutex_unlock(&ctx->worker_lock);
         break;
       }
-      NEW_TASK;
+      NEW_TASK
     }
     pthread_mutex_unlock(&ctx->worker_lock);
     if (worker == NULL) {

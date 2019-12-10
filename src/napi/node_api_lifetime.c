@@ -296,6 +296,7 @@ void js_setup_napi() {
 }
 
 void js_cleanup_napi() {
+  napi_uninit_module_queue();
   js_napi_env_t* env = (js_napi_env_t*)js_get_current_napi_env();
   js_cleanup_hook_t* hook = env->cleanup_hook;
   while (hook != NULL) {

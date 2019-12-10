@@ -3,6 +3,7 @@
 #include "js-common.h"
 #include "js-modules.h"
 #include "node_api.h"
+#include "node_api_internal.h"
 
 int js_start() {
   JS_LOG_I("#####  js start 🐒 #####");
@@ -16,6 +17,7 @@ int js_start() {
   js_ctx->jerry = jerry_create_context(JS_VM_HEAP_SIZE, js_jerry_alloc, NULL);
   jerry_port_default_set_current_context(js_ctx->jerry);
   jerry_init(JERRY_INIT_EMPTY);
+  js_setup_napi();
   js_load_global_modules();
   const char* entry_name = "global";
   const js_snapshot_module_t* snapshot = js_get_js_module(entry_name);
@@ -31,7 +33,6 @@ int js_start() {
 
   rv_ctx_loop(js_ctx->rv, RV_RUN_DEFAULT);
 
-  jerry_cleanup();
   js_free(js_ctx->jerry);
   js_free(js_ctx->rv);
   js_free(js_ctx);

@@ -18,18 +18,18 @@
 #define TOSTRING(x) STRINGIFY(x)
 #endif /* TOSTRING */
 
-#define JS_ABORT()                                        \
-  do {                                                    \
-    JS_LOG_E("abort message: %s:%d", __FILE__, __LINE__); \
-    abort();                                              \
+#define JS_ABORT(msg)                                            \
+  do {                                                           \
+    JS_LOG_E("fatal error: %s:%d\n%s", __FILE__, __LINE__, msg); \
+    abort();                                                     \
   } while (false)
 
-#define JS_ASSERT(exp)                      \
-  do {                                      \
-    if (!(exp)) {                           \
-      JS_LOG_E("assert message: %s", #exp); \
-      assert(0);                            \
-    }                                       \
+#define JS_ASSERT(exp)           \
+  do {                           \
+    if (!(exp)) {                \
+      JS_ABORT("assert: " #exp); \
+      abort();                   \
+    }                            \
   } while (false)
 
 #define JS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(name)                  \
@@ -41,7 +41,7 @@
 #define JS_CHECK_FATAL_ERROR(jobj, source) \
   if (jerry_value_is_error(jobj)) {        \
     js_on_fatal_error(jobj, source);       \
-    assert(0);                             \
+    JS_ABORT("fatal error occurred");      \
   }
 
 #define JS_CREATE_ERROR(TYPE, message) \

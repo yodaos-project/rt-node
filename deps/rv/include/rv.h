@@ -13,11 +13,11 @@
 #include "queue.h"
 #include "atomic-ops.h"
 
-#define RV_ASSERT(exp, reason)                                \
+#define RV_ASSERT(exp, reason)                                  \
   do {                                                          \
     if (!(exp)) {                                               \
       fprintf(stderr, #exp ", %s\n", reason);                   \
-      assert(0);                                                \
+      abort();                                                  \
     }                                                           \
   } while (0)
 

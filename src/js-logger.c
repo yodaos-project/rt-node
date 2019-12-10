@@ -1,10 +1,8 @@
 #include "js-logger.h"
 #include <stdarg.h>
-#include <stdlib.h>
 #include <string.h>
 #include <sys/time.h>
 #include <time.h>
-#include <unistd.h>
 
 static int redirect_fd = -1;
 static js_log_level min_level = JS_LOG_LEVEL_V;

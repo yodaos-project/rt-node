@@ -15,7 +15,6 @@
  */
 
 #include "internal/node_api_internal.h"
-#include "process.h"
 
 static void on_work(rv_worker_t* req) {
   js_async_work_t* async_work = (js_async_work_t*)req->data;
@@ -56,7 +55,8 @@ static void on_work_done(rv_worker_t* req) {
     }
   }
 
-  js_run_next_tick();
+  // TODO
+  //  js_run_next_tick();
 }
 
 static void on_work_close(rv_watcher_t* worker) {
@@ -149,7 +149,8 @@ napi_status napi_make_callback(napi_env env, napi_async_context async_context,
 
   napi_status status = napi_call_function(env, recv, func, argc, argv, result);
   if (!js_napi_is_exception_pending(env)) {
-    js_run_next_tick();
+    // TODO
+    //    js_run_next_tick();
   } else {
     // In this case explicit napi_async_destroy calls won't be executed, so
     // free the context manually.

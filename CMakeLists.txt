@@ -1,20 +1,31 @@
 cmake_minimum_required(VERSION 2.8)
 project(rtnode C)
 
+if(NOT DEFINED JS_ROOT)
+  message(FATAL_ERROR "missing js root")
+endif()
+
+set(JS_USER_CODE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/${JS_ROOT})
+if(NOT EXISTS "${JS_USER_CODE_DIR}/app.js")
+  message(FATAL_ERROR "missing app.js in ${JS_USER_CODE_DIR}")
+endif()
+
+set(JS_INTERNAL_CODE_DIR ${CMAKE_SOURCE_DIR}/src/js)
+
 # set jerry build options
-set(ENABLE_LTO                      OFF     CACHE BOOL "Enable LTO")
-set(JERRY_CMDLINE                   OFF     CACHE BOOL "Build jerry command line tool?")
-set(JERRY_PORT_DEFAULT              ON      CACHE BOOL "Build default jerry port implementation?")
-set(JERRY_EXT                       ON      CACHE BOOL "Build jerry-ext?")
-set(JERRY_LIBM                      ON      CACHE BOOL "Build and use jerry-libm?")
+set(ENABLE_LTO                      OFF     CACHE BOOL   "Enable LTO")
+set(JERRY_CMDLINE                   OFF     CACHE BOOL   "Build jerry command line tool?")
+set(JERRY_PORT_DEFAULT              ON      CACHE BOOL   "Build default jerry port implementation?")
+set(JERRY_EXT                       ON      CACHE BOOL   "Build jerry-ext?")
+set(JERRY_LIBM                      ON      CACHE BOOL   "Build and use jerry-libm?")
 set(JERRY_ERROR_MESSAGES            ON      CACHE BOOL   "Enable error messages?")
 set(JERRY_EXTERNAL_CONTEXT          ON      CACHE BOOL   "Enable external context?")
 set(JERRY_PARSER                    ON      CACHE BOOL   "Enable javascript-parser?")
 set(JERRY_LINE_INFO                 ON      CACHE BOOL   "Enable line info?")
 set(JERRY_MEM_STATS                 OFF     CACHE BOOL   "Enable memory statistics?")
-set(JERRY_PROFILE                   "es5.1" CACHE STRING "Use default or other profile?")
+set(JERRY_PROFILE           "es2015-subset" CACHE STRING "Use default or other profile?")
 set(JERRY_SNAPSHOT_EXEC             ON      CACHE BOOL   "Enable executing snapshot files?")
-set(JERRY_GLOBAL_HEAP_SIZE          "(128)" CACHE STRING "Size of memory heap, in kilobytes")
+set(JERRY_GLOBAL_HEAP_SIZE        "(128)"   CACHE STRING "Size of memory heap, in kilobytes")
 
 if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "xtensa")
   # FIXME add platform flag to distinguish between different platforms
@@ -23,11 +34,10 @@ if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "xtensa")
 endif()
 
 # package src/js/*.js to src/rtnode-snapshots.c before build
-file(GLOB JS_FILES src/js/*.js)
 add_custom_command(OUTPUT ${CMAKE_SOURCE_DIR}/src/js-snapshots.c ${CMAKE_SOURCE_DIR}/js-snapshots.h
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-  COMMAND bash ${CMAKE_SOURCE_DIR}/tools/js2c.sh
-  DEPENDS ${JS_FILES} ${CMAKE_SOURCE_DIR}/tools/js2c.sh ${CMAKE_SOURCE_DIR}/tools/js2c.py)
+  COMMAND bash ${CMAKE_SOURCE_DIR}/tools/js2c.sh ${JS_USER_CODE_DIR} ${JS_INTERNAL_CODE_DIR}
+  DEPENDS ${CMAKE_SOURCE_DIR}/tools/js2c.sh ${CMAKE_SOURCE_DIR}/tools/js2c.py)
 
 # set header search path
 set(INCLUDE_LIST
@@ -70,6 +80,6 @@ if(DEFINED SAMPLE)
       BINARY_DIR ${CMAKE_BINARY_DIR}/rtnode-build
       CMAKE_ARGS)
   else()
-    message(FATAL_ERROR "unsupport platform ${SAMPLE}")
+    message(FATAL_ERROR "unsupported platform ${SAMPLE}")
   endif()
 endif()

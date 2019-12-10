@@ -6,10 +6,8 @@
 The following runtime modules are built in:
 - timer
 - require
-- events
 - utils
 - console
-- assert
 - N-API
 
 N-API is supported in order to be compatible with different embed JavaScript engines, the following N-API features are WIP:
@@ -22,34 +20,34 @@ N-API is supported in order to be compatible with different embed JavaScript eng
 
 ## Example
 
-JavaScript sources are packaged in `src/rtnode-snapshots.c/h`. Use `sh tools/js2c.sh` to package JavaScript Sources if the sources are changed.
+JavaScript sources are packaged in `src/rtnode-snapshots.c/h`. Use `sh tools/js2c.sh` to package JavaScript sources if the sources are changed.
 
-`src/js/app.js` is the entry of JavaScript, here is an example:
+set `JS_ROOT` for `cmake` as your JavaScript sources root directory, here is an example:
 
 ```javascript
 'use strict';
-var EV = require('events').EventEmitter
-var util = require('util')
 
-function Timer() {
-  EV.call(this)
+// http depends on curl, remove it if there have not curl in target host
+const http = require('http');
+
+class HelloWorld {
+  say() {
+    console.log('hello world');
+  }
 }
 
-util.inherits(Timer, EV)
+const helloWorld = new HelloWorld();
+setTimeout(() => {
+  helloWorld.say();
+}, 1000);
 
-Timer.prototype.run = function (timeout) {
-  var self = this
-  setTimeout(function () {
-    self.emit('timeout', timeout)
-  }, timeout)
-}
+http.get('http://www.example.com', (body) => {
+  console.log('get body:');
+  console.log(body);
+});
 
-var timer = new Timer()
-timer.run(1000)
-timer.on('timeout', function (timeout) {
-  console.log('time out after ' + timeout + 'ms')
-  console.log('memory usage: ', process.memoryUsage())
-})
+console.log('app start');
+
 
 ```
 
@@ -58,7 +56,7 @@ timer.on('timeout', function (timeout) {
 `rtnode` use [CMake](https://cmake.org) to build library or samples. The easiest way to build is as follows:
 
 ```shell
-$ cmake -B./build -H.
+$ cmake -B./build -H. -DJS_ROOT=Your_js_files_root_directory
 $ make -C./build -j8
 ```
 
@@ -75,7 +73,8 @@ here is an example for `Xtensa` toolchain:
 $ cmake -B./build-xtensa -H. \
   -DCMAKE_C_COMPILER=xtensa-esp32-elf-gcc \
   -DCMAKE_SYSTEM_PROCESSOR=xtensa \
-  -DCMAKE_SYSTEM_NAME=Generic
+  -DCMAKE_SYSTEM_NAME=Generic \
+  -DJS_ROOT=Your_js_files_root_directory
 $ make -C./build-xtensa -j8
 ```
  
@@ -85,7 +84,7 @@ Currently support unix and esp-idf build framework.
 
 For unix like systems
 ```shell
-$ cmake -B./build -H. -DSAMPLE=unix
+$ cmake -B./build -H. -DSAMPLE=unix -DJS_ROOT=./samples -DJERRY_PROFILE=es2015-subset
 $ make -C./build
 $ ./build/rtnode-unix/rtnode-unix # run sample
 ```
@@ -96,7 +95,9 @@ $ cmake -B./build-espidf -H. \
   -DCMAKE_C_COMPILER=xtensa-esp32-elf-gcc \
   -DCMAKE_SYSTEM_PROCESSOR=xtensa \
   -DCMAKE_SYSTEM_NAME=Generic \
-  -DSAMPLE=esp-idf
+  -DSAMPLE=esp-idf \
+  -DJS_ROOT=./samples \
+  -DJERRY_PROFILE=es2015-subset
 $ make -C./build-espidf -j8
 ```
 
@@ -104,4 +105,4 @@ The esp-idf products will generate in `./build-espidf/rtnode-build`, then use `i
 
 ## LICENSE
 
-[Apache-2.0](./LICENSE.md)
+[Apache-2.0](./LICENSE)

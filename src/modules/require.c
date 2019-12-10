@@ -1,7 +1,7 @@
-
 #include "require.h"
 #include "js-error.h"
 #include "js-modules.h"
+#include "node_api_internal.h"
 
 static jerry_value_t require_js_module(const char* name) {
   static const char* args = "exports, module, native, __filename";
@@ -75,13 +75,20 @@ JS_FUNCTION(require) {
     js_object_set_property(jglobal, cache_key, jcached_modules);
   }
 
+  // require from cache
   jerry_value_t jmodule = js_object_get_property(jcached_modules, name);
   bool cached = !jerry_value_is_undefined(jmodule);
   JS_LOG_I("require module %s, cached %d", name, cached);
   if (!cached) {
+    // require from js
     jmodule = require_js_module(name);
     if (jerry_value_is_undefined(jmodule)) {
+      // require from builtin
       jmodule = require_native_module(name);
+    }
+    if (jerry_value_is_undefined(jmodule)) {
+      // require from napi
+      jmodule = napi_require_module(name);
     }
     JS_ASSERT(!jerry_value_is_undefined(jmodule));
     js_object_set_property(jcached_modules, name, jmodule);
