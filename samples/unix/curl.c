@@ -1,5 +1,5 @@
-#include "common.h"
 #include "curl/curl.h"
+#include "common.h"
 
 typedef struct {
   char* ptr;
@@ -110,9 +110,9 @@ static napi_value do_get(napi_env env, napi_callback_info info) {
   return undefined_value;
 }
 
-napi_value init_http(napi_env env, napi_value exports) {
+static napi_value init_curl(napi_env env, napi_value exports) {
   SET_NAMED_METHOD(env, exports, "get", do_get);
   return exports;
 }
 
-NAPI_MODULE(http, init_http);
+NAPI_MODULE(curl, init_curl);

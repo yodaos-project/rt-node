@@ -72,7 +72,9 @@ typedef struct {
       fn;                                                                   \
   static void __cdecl fn(void)
 #else
-#define NAPI_C_CTOR(fn)
+#define NAPI_C_CTOR(fn)                              \
+  static void fn(void) __attribute__((constructor)); \
+  static void fn(void)
 #endif
 
 #ifdef __cplusplus
@@ -85,7 +87,7 @@ typedef struct {
 
 #define NAPI_MODULE_X(modname, regfunc, priv, flags)                  \
   EXTERN_C_START                                                      \
-    napi_module modname =                                             \
+    static napi_module _module =                                      \
     {                                                                 \
       NAPI_MODULE_VERSION,                                            \
       flags,                                                          \
@@ -95,6 +97,9 @@ typedef struct {
       priv,                                                           \
       {0},                                                            \
     };                                                                \
+    NAPI_C_CTOR(_register_ ## modname) {                              \
+      napi_module_register(&_module);                                 \
+    }                                                                 \
   EXTERN_C_END
 
 #define NAPI_MODULE(modname, regfunc)                                 \
