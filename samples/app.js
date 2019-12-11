@@ -1,6 +1,5 @@
 'use strict';
 
-// http depends on curl, remove it if there have not curl in target host
 const curl = require('curl');
 const hello = require('hello');
 

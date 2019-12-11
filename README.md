@@ -18,45 +18,49 @@ N-API is supported in order to be compatible with different embed JavaScript eng
 - [JerryScript](./deps/jerryscript), a lightweight JavaScript engine
 - [rv](./deps/rv), a tiny event loop library
 
-## Example
+## JavaScript Sample
 
-JavaScript sources are packaged in `src/rtnode-snapshots.c/h`. Use `sh tools/js2c.sh` to package JavaScript sources if the sources are changed.
-
-set `JS_ROOT` for `cmake` as your JavaScript sources root directory, here is an example:
+`speak.js`
 
 ```javascript
-
 'use strict';
-
-// http depends on curl, remove it if there have not curl in target host
-const curl = require('curl');
-
-console.log('app start');
-
 class Speaker {
   constructor(content) {
     this.content = content;
   }
-
   say() {
     console.log(this.content);
   }
 }
+module.exports = Speaker;
+```
 
+`app.js`
+
+```javascript
+'use strict';
+const Speaker = require('speaker');
 const speaker = new Speaker('hello world');
 setTimeout(() => {
   speaker.say();
 }, 3000);
+```
 
+## N-API Sample
+
+```javascript
+'use strict';
+// The curl module depends on libcurl, the source file is sample/unix/curl.c
+const curl = require('curl');
 const startTime = Date.now();
 curl.get('http://www.example.com', (body) => {
-  console.log(`get body in ${Date.now() - startTime}ms`);
-  console.log(body.replace(/[ \n]/g, ''));
+  console.log(`get body in ${Date.now() - startTime}ms`, body);
 });
-
 ```
 
 ## Build
+
+JavaScript sources are packaged in `src/rtnode-snapshots.c/h`, set `JS_ROOT` as your JavaScript sources root directory for cmake to package them, `app.js` is the entry of user code.
 
 `rtnode` use [CMake](https://cmake.org) to build library or samples. The easiest way to build is as follows:
 
@@ -72,7 +76,7 @@ For cross compile, add the following flags:
 - CMAKE_SYSTEM_PROCESSOR, the name of the CPU CMake is building for
 - CMAKE_SYSTEM_NAME, set `Generic` to indicate cross compile
 
-here is an example for `Xtensa` toolchain:
+Here is an example for `Xtensa` toolchain:
 
 ```shell
 $ cmake -B./build-xtensa -H. \
@@ -82,7 +86,7 @@ $ cmake -B./build-xtensa -H. \
   -DJS_ROOT=Your_js_files_root_directory
 $ make -C./build-xtensa -j8
 ```
- 
+
 ## Sample
 
 Currently support unix and esp-idf build framework.
