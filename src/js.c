@@ -33,6 +33,8 @@ int js_start() {
 
   rv_ctx_loop(js_ctx->rv, RV_RUN_DEFAULT);
 
+  js_cleanup_napi();
+  jerry_cleanup();
   js_free(js_ctx->jerry);
   js_free(js_ctx->rv);
   js_free(js_ctx);

@@ -1,5 +1,5 @@
-#include "curl/curl.h"
-#include "common.h"
+#include <curl/curl.h>
+#include "js.h"
 
 typedef struct {
   char* ptr;
@@ -15,6 +15,7 @@ typedef struct {
 
 static void init_string(string* s) {
   s->len = 0;
+  // FIXME: replace with js_malloc
   s->ptr = malloc(s->len + 1);
   if (s->ptr == NULL) {
     fprintf(stderr, "malloc() failed\n");
@@ -25,6 +26,7 @@ static void init_string(string* s) {
 
 static size_t write_func(void* ptr, size_t size, size_t nmemb, string* s) {
   size_t new_len = s->len + size * nmemb;
+  // FIXME: replace with js_realloc
   s->ptr = realloc(s->ptr, new_len + 1);
   if (s->ptr == NULL) {
     fprintf(stderr, "realloc() failed\n");
@@ -57,22 +59,24 @@ static void complete(napi_env env, napi_status status, void* data) {
   req_t* req = (req_t*)data;
 
   napi_value argv[1];
-  NAPI_CALL_RETURN_VOID(env, napi_create_string_utf8(env, req->body.ptr,
-                                                     req->body.len, argv));
+  JS_NAPI_CALL_RETURN_VOID(env, napi_create_string_utf8(env, req->body.ptr,
+                                                        req->body.len, argv));
 
   napi_value callback;
-  NAPI_CALL_RETURN_VOID(env, napi_get_reference_value(env, req->cb, &callback));
+  JS_NAPI_CALL_RETURN_VOID(env,
+                           napi_get_reference_value(env, req->cb, &callback));
   napi_value global;
-  NAPI_CALL_RETURN_VOID(env, napi_get_global(env, &global));
+  JS_NAPI_CALL_RETURN_VOID(env, napi_get_global(env, &global));
 
   napi_value result;
-  NAPI_CALL_RETURN_VOID(env, napi_call_function(env, global, callback, 1, argv,
-                                                &result));
+  JS_NAPI_CALL_RETURN_VOID(env, napi_call_function(env, global, callback, 1,
+                                                   argv, &result));
 
-  NAPI_CALL_RETURN_VOID(env, napi_delete_reference(env, req->cb));
-  NAPI_CALL_RETURN_VOID(env, napi_delete_async_work(env, req->work));
+  JS_NAPI_CALL_RETURN_VOID(env, napi_delete_reference(env, req->cb));
+  JS_NAPI_CALL_RETURN_VOID(env, napi_delete_async_work(env, req->work));
 
   js_free(req->url);
+  // FIXME: replace with js_free
   free(req->body.ptr);
   js_free(req);
 }
@@ -81,29 +85,31 @@ static napi_value do_get(napi_env env, napi_callback_info info) {
   req_t* req = (req_t*)js_malloc(sizeof(req_t));
   size_t argc = 2;
   napi_value argv[argc];
-  NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, NULL, NULL));
+  JS_NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, NULL, NULL));
 
   napi_valuetype t;
-  NAPI_CALL(env, napi_typeof(env, argv[0], &t));
-  NAPI_ASSERT(env, t == napi_string, "Wrong first argument, string expected.");
-  NAPI_CALL(env, napi_typeof(env, argv[1], &t));
-  NAPI_ASSERT(env, t == napi_function,
-              "Wrong second argument, function expected.");
+  JS_NAPI_CALL(env, napi_typeof(env, argv[0], &t));
+  JS_NAPI_ASSERT(env, t == napi_string,
+                 "Wrong first argument, string expected.");
+  JS_NAPI_CALL(env, napi_typeof(env, argv[1], &t));
+  JS_NAPI_ASSERT(env, t == napi_function,
+                 "Wrong second argument, function expected.");
 
   size_t length;
-  NAPI_CALL(env, napi_get_value_string_utf8(env, argv[0], NULL, 0, &length));
+  JS_NAPI_CALL(env, napi_get_value_string_utf8(env, argv[0], NULL, 0, &length));
   req->url = (char*)js_malloc(length + 1);
-  NAPI_CALL(env, napi_get_value_string_utf8(env, argv[0], req->url, length,
-                                            &length));
+  JS_NAPI_CALL(env, napi_get_value_string_utf8(env, argv[0], req->url, length,
+                                               &length));
   req->url[length] = '\0';
 
-  NAPI_CALL(env, napi_create_reference(env, argv[1], 1, &req->cb));
+  JS_NAPI_CALL(env, napi_create_reference(env, argv[1], 1, &req->cb));
 
   napi_value nurl;
-  NAPI_CALL(env, napi_create_string_utf8(env, "url", NAPI_AUTO_LENGTH, &nurl));
-  NAPI_CALL(env, napi_create_async_work(env, NULL, nurl, execute, complete, req,
-                                        &req->work));
-  NAPI_CALL(env, napi_queue_async_work(env, req->work));
+  JS_NAPI_CALL(env,
+               napi_create_string_utf8(env, "url", NAPI_AUTO_LENGTH, &nurl));
+  JS_NAPI_CALL(env, napi_create_async_work(env, NULL, nurl, execute, complete,
+                                           req, &req->work));
+  JS_NAPI_CALL(env, napi_queue_async_work(env, req->work));
 
   napi_value undefined_value;
   napi_get_undefined(env, &undefined_value);
@@ -111,7 +117,7 @@ static napi_value do_get(napi_env env, napi_callback_info info) {
 }
 
 static napi_value init_curl(napi_env env, napi_value exports) {
-  SET_NAMED_METHOD(env, exports, "get", do_get);
+  JS_NAPI_SET_NAMED_METHOD(env, exports, "get", do_get);
   return exports;
 }
 

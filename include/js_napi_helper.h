@@ -1,12 +1,10 @@
-#ifndef JS_COMMON_H
-#define JS_COMMON_H
-
-#include "js.h"
+#ifndef JS_NAPI_HELPER_H
+#define JS_NAPI_HELPER_H
 
 // Empty value so that macros here are able to return NULL or void
-#define NAPI_RETVAL_NOTHING // Intentionally blank #define
+#define JS_NAPI_RETVAL_NOTHING // Intentionally blank #define
 
-#define GET_AND_THROW_LAST_ERROR(env)                               \
+#define JS_NAPI_GET_AND_THROW_LAST_ERROR(env)                       \
   do {                                                              \
     const napi_extended_error_info* error_info;                     \
     napi_get_last_error_info((env), &error_info);                   \
@@ -21,7 +19,7 @@
     }                                                               \
   } while (0)
 
-#define NAPI_ASSERT_BASE(env, assertion, message, ret_val)             \
+#define JS_NAPI_ASSERT_BASE(env, assertion, message, ret_val)          \
   do {                                                                 \
     if (!(assertion)) {                                                \
       napi_throw_error((env), NULL,                                    \
@@ -32,36 +30,36 @@
 
 // Returns NULL on failed assertion.
 // This is meant to be used inside napi_callback methods.
-#define NAPI_ASSERT(env, assertion, message) \
-  NAPI_ASSERT_BASE(env, assertion, message, NULL)
+#define JS_NAPI_ASSERT(env, assertion, message) \
+  JS_NAPI_ASSERT_BASE(env, assertion, message, NULL)
 
 // Returns empty on failed assertion.
 // This is meant to be used inside functions with void return type.
-#define NAPI_ASSERT_RETURN_VOID(env, assertion, message) \
-  NAPI_ASSERT_BASE(env, assertion, message, NAPI_RETVAL_NOTHING)
+#define JS_NAPI_ASSERT_RETURN_VOID(env, assertion, message) \
+  NAPI_ASSERT_BASE(env, assertion, message, JS_NAPI_RETVAL_NOTHING)
 
-#define NAPI_CALL_BASE(env, the_call, ret_val) \
-  do {                                         \
-    if ((the_call) != napi_ok) {               \
-      GET_AND_THROW_LAST_ERROR((env));         \
-      return ret_val;                          \
-    }                                          \
+#define JS_NAPI_CALL_BASE(env, the_call, ret_val) \
+  do {                                            \
+    if ((the_call) != napi_ok) {                  \
+      JS_NAPI_GET_AND_THROW_LAST_ERROR((env));    \
+      return ret_val;                             \
+    }                                             \
   } while (0)
 
 // Returns NULL if the_call doesn't return napi_ok.
-#define NAPI_CALL(env, the_call) NAPI_CALL_BASE(env, the_call, NULL)
+#define JS_NAPI_CALL(env, the_call) JS_NAPI_CALL_BASE(env, the_call, NULL)
 
 // Returns empty if the_call doesn't return napi_ok.
-#define NAPI_CALL_RETURN_VOID(env, the_call) \
-  NAPI_CALL_BASE(env, the_call, NAPI_RETVAL_NOTHING)
+#define JS_NAPI_CALL_RETURN_VOID(env, the_call) \
+  JS_NAPI_CALL_BASE(env, the_call, JS_NAPI_RETVAL_NOTHING)
 
-#define DECLARE_NAPI_PROPERTY(name, func) \
+#define JS_DECLARE_NAPI_PROPERTY(name, func) \
   { (name), 0, (func), 0, 0, 0, napi_default, 0 }
 
-#define DECLARE_NAPI_GETTER(name, func) \
+#define JS_DECLARE_NAPI_GETTER(name, func) \
   { (name), 0, 0, (func), 0, 0, napi_default, 0 }
 
-#define SET_NAMED_METHOD(env, target, prop_name, handler)            \
+#define JS_NAPI_SET_NAMED_METHOD(env, target, prop_name, handler)    \
   do {                                                               \
     napi_status status;                                              \
     napi_value fn;                                                   \
@@ -74,4 +72,4 @@
       return NULL;                                                   \
   } while (0);
 
-#endif // JS_COMMON_H
+#endif // JS_NAPI_HELPER_H

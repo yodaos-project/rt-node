@@ -57,7 +57,7 @@ void napi_module_register(napi_module* mod) {
     (napi_module_internal*)js_malloc(sizeof(napi_module_internal));
   internal_mod->mod = mod;
   QUEUE_INIT(&internal_mod->node);
-  QUEUE_INSERT_TAIL(&internal_mod->node, &napi_modules);
+  QUEUE_INSERT_TAIL(&napi_modules, &internal_mod->node);
 }
 
 jerry_value_t napi_require_module(const char* name) {

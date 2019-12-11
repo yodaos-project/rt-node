@@ -4,6 +4,7 @@
 #include "js-common.h"
 #include "js-native.h"
 #include "js-rv-watcher.h"
+#include "js_napi_helper.h"
 #include "node_api.h"
 #include "node_api_types.h"
 

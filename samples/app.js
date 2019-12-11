@@ -2,6 +2,7 @@
 
 // http depends on curl, remove it if there have not curl in target host
 const curl = require('curl');
+const hello = require('hello');
 
 console.log('app start');
 
@@ -15,7 +16,8 @@ class Speaker {
   }
 }
 
-const speaker = new Speaker('hello world');
+const content = hello.getContent();
+const speaker = new Speaker(content);
 setTimeout(() => {
   speaker.say();
 }, 3000);

@@ -32,7 +32,7 @@
 //  uv_mutex_t* op_mutex = &tsfn->op_mutex;
 //
 //  thread_finalize_cb(env, thread_finalize_data, context);
-//  NAPI_ASSERT(tsfn->invocation_head == NULL,
+//  JS_NAPI_ASSERT(tsfn->invocation_head == NULL,
 //              "TSFN invocation shall be cleared before closing async
 //              handle.");
 //
@@ -107,7 +107,7 @@
 //    napi_threadsafe_function_call_js call_js_cb,
 //    napi_threadsafe_function* result) {
 //  NAPI_TRY_ENV(env);
-//  NAPI_ASSERT(result != NULL,
+//  JS_NAPI_ASSERT(result != NULL,
 //              "Expect an non-null out result pointer on "
 //              "napi_create_threadsafe_function.");
 //
@@ -220,7 +220,7 @@
 //        uv_cond_wait(&tsfn->async_cond, &tsfn->op_mutex);
 //        break;
 //      default:
-//        NAPI_ASSERT(false,
+//        JS_NAPI_ASSERT(false,
 //                    "Unrecognized mode on napi_call_threadsafe_function.");
 //    }
 //  }
@@ -283,7 +283,7 @@
 //      tsfn->aborted = true;
 //      break;
 //    default:
-//      NAPI_ASSERT(false,
+//      JS_NAPI_ASSERT(false,
 //                  "Unrecognized mode on napi_release_threadsafe_function.");
 //  }
 //

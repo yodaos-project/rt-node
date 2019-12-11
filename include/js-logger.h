@@ -14,7 +14,7 @@ typedef enum {
 #define JS_LOG_I(...) js_do_log(JS_LOG_LEVEL_I, __VA_ARGS__)
 #define JS_LOG_W(...) js_do_log(JS_LOG_LEVEL_W, __VA_ARGS__)
 #define JS_LOG_E(...) js_do_log(JS_LOG_LEVEL_E, __VA_ARGS__)
-#define JS_LOG_F(...) js_do_log(LOG_LEVEL_FATAL, __VA_ARGS__)
+#define JS_LOG_F(...) js_do_log(JS_LOG_LEVEL_F, __VA_ARGS__)
 
 #ifdef __cplusplus
 extern "C" {

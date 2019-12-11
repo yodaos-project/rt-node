@@ -90,7 +90,10 @@ JS_FUNCTION(require) {
       // require from napi
       jmodule = napi_require_module(name);
     }
-    JS_ASSERT(!jerry_value_is_undefined(jmodule));
+    if (jerry_value_is_undefined(jmodule)) {
+      JS_LOG_F("cannot load module %s from js, native, napi", name);
+      JS_ABORT("load module failure");
+    }
     js_object_set_property(jcached_modules, name, jmodule);
   }
   jerry_value_t jexports = js_object_get_property(jmodule, "exports");
