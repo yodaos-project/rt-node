@@ -20,7 +20,7 @@ N-API is supported in order to be compatible with different embed JavaScript eng
 
 ## JavaScript Sample
 
-`speak.js`
+`speaker.js`
 
 ```javascript
 'use strict';
